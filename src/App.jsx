@@ -1,0 +1,434 @@
+import { useState, useEffect, useCallback } from "react";
+
+// ─── PASTE YOUR SUPABASE CREDENTIALS HERE ───────────────────────────────────
+const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
+// ────────────────────────────────────────────────────────────────────────────
+
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+    ...opts,
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+      ...opts.headers,
+    },
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : [];
+}
+
+async function loadOrders() {
+  try {
+    return await sbFetch("/orders?order=created_at.desc");
+  } catch (e) { console.error(e); return []; }
+}
+
+async function createOrder(order) {
+  const row = {
+    id: order.id, garage: order.garage, car: order.car, year: order.year,
+    part: order.part, notes: order.notes, photos: order.photos,
+    status: "pending", quote: null,
+    created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+  };
+  return sbFetch("/orders", { method: "POST", body: JSON.stringify(row) });
+}
+
+async function patchOrder(id, changes) {
+  return sbFetch(`/orders?id=eq.${id}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ ...changes, updated_at: new Date().toISOString() }),
+  });
+}
+
+// Map DB snake_case → camelCase for UI
+function mapOrder(o) {
+  return { ...o, createdAt: o.created_at, updatedAt: o.updated_at };
+}
+
+const STATUS = {
+  pending:   { label: "Pending",   color: "#F59E0B" },
+  quoted:    { label: "Quoted",    color: "#3B82F6" },
+  confirmed: { label: "Confirmed", color: "#8B5CF6" },
+  sourcing:  { label: "Sourcing",  color: "#06B6D4" },
+  fulfilled: { label: "Fulfilled", color: "#10B981" },
+  cancelled: { label: "Cancelled", color: "#EF4444" },
+};
+
+const FONT = `@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');`;
+const BASE = `*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } body { background: #0A0A0A; }`;
+
+export default function App() {
+  const [view, setView] = useState("home");
+  const [adminPw, setAdminPw] = useState("");
+  const [adminAuth, setAdminAuth] = useState(false);
+  const [pwError, setPwError] = useState(false);
+  const ADMIN_PASSWORD = "munzir2025";
+
+  function enterAdmin() {
+    if (adminPw === ADMIN_PASSWORD) { setAdminAuth(true); setView("admin"); setPwError(false); }
+    else setPwError(true);
+  }
+
+  if (view === "garage") return <GaragePortal onBack={() => setView("home")} />;
+  if (view === "admin" && adminAuth) return <AdminDashboard onBack={() => { setView("home"); setAdminAuth(false); }} />;
+
+  return (
+    <>
+      <style>{FONT}{BASE}{`
+        .home { min-height:100vh; background:#0A0A0A; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Syne',sans-serif; padding:2rem; }
+        .logo { font-size:clamp(1.6rem,5vw,3rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
+        .logo span { color:#C9A84C; }
+        .sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1rem; }
+        .slogan { font-family:'DM Mono',monospace; font-size:0.82rem; color:#C9A84C; letter-spacing:0.05em; margin-bottom:4rem; text-align:center; opacity:0.85; }
+        .cards { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; max-width:680px; width:100%; }
+        @media(max-width:520px){.cards{grid-template-columns:1fr;}}
+        .card { border:1px solid #222; border-radius:2px; padding:2.5rem 2rem; background:#111; transition:all 0.2s; }
+        .card.clickable { cursor:pointer; }
+        .card.clickable:hover { border-color:#C9A84C; background:#141414; transform:translateY(-2px); }
+        .card-icon { font-size:2rem; margin-bottom:1rem; }
+        .card-title { font-size:1.25rem; font-weight:700; color:#F5F0E8; margin-bottom:0.5rem; }
+        .card-desc { font-family:'DM Mono',monospace; font-size:0.72rem; color:#666; line-height:1.6; margin-bottom:1.25rem; }
+        .pw-input { width:100%; background:#0A0A0A; border:1px solid #333; color:#F5F0E8; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.6rem 1rem; border-radius:2px; outline:none; margin-bottom:0.5rem; }
+        .pw-input:focus { border-color:#C9A84C; }
+        .pw-btn { width:100%; background:#C9A84C; color:#0A0A0A; border:none; font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.05em; padding:0.65rem; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
+        .pw-btn:hover { opacity:0.85; }
+        .pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#EF4444; margin-top:0.4rem; }
+      `}</style>
+      <div className="home">
+        <div className="logo">SPARES<span>ANYWHERE</span></div>
+        <div className="sub">Automotive Parts · UK · Dubai · Nigeria</div>
+        <div className="slogan">Find the parts you need, anytime, anywhere at sparesanywhere.com</div>
+        <div className="cards">
+          <div className="card clickable" onClick={() => setView("garage")}>
+            <div className="card-icon">🔧</div>
+            <div className="card-title">Garage Portal</div>
+            <div className="card-desc">Submit part requests, upload VIN plates or reference photos, and track order status.</div>
+          </div>
+          <div className="card">
+            <div className="card-icon">📊</div>
+            <div className="card-title">Admin Dashboard</div>
+            <div className="card-desc">View all incoming orders, add quotes, and update statuses.</div>
+            <input className="pw-input" type="password" placeholder="Enter password…" value={adminPw}
+              onChange={e => { setAdminPw(e.target.value); setPwError(false); }}
+              onKeyDown={e => e.key === "Enter" && enterAdmin()} />
+            <button className="pw-btn" onClick={enterAdmin}>ENTER →</button>
+            {pwError && <div className="pw-error">Incorrect password</div>}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function GaragePortal({ onBack }) {
+  const [tab, setTab] = useState("new");
+  const [orders, setOrders] = useState([]);
+  const [form, setForm] = useState({ garage: "", car: "", year: "", part: "", notes: "", photos: [] });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => { loadOrders().then(o => { setOrders(o.map(mapOrder)); setLoading(false); }); }, []);
+
+  function handlePhoto(e) {
+    Array.from(e.target.files).forEach(file => {
+      const r = new FileReader();
+      r.onload = ev => setForm(f => ({ ...f, photos: [...f.photos, { name: file.name, data: ev.target.result }] }));
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function handleSubmit() {
+    if (!form.garage || !form.car || !form.part) return;
+    setSubmitting(true); setError("");
+    const order = { id: "ORD-" + Date.now().toString(36).toUpperCase(), ...form };
+    try {
+      await createOrder(order);
+      const fresh = await loadOrders();
+      setOrders(fresh.map(mapOrder));
+      setSubmitted(true);
+      setForm({ garage: "", car: "", year: "", part: "", notes: "", photos: [] });
+      setTimeout(() => { setSubmitted(false); setTab("history"); }, 2000);
+    } catch (e) {
+      setError("Failed to submit. Check your Supabase credentials.");
+    }
+    setSubmitting(false);
+  }
+
+  return (
+    <>
+      <style>{FONT}{BASE}{`
+        .portal { min-height:100vh; background:#0D0D0D; font-family:'Syne',sans-serif; }
+        .hdr { display:flex; align-items:center; justify-content:space-between; padding:1.25rem 2rem; border-bottom:1px solid #1A1A1A; }
+        .hdr-logo { font-size:1.1rem; font-weight:800; color:#F5F0E8; }
+        .hdr-logo span { color:#C9A84C; }
+        .back { font-family:'DM Mono',monospace; font-size:0.72rem; color:#555; cursor:pointer; letter-spacing:0.1em; text-transform:uppercase; border:1px solid #222; padding:0.4rem 0.9rem; border-radius:2px; background:none; transition:all 0.2s; }
+        .back:hover { color:#C9A84C; border-color:#C9A84C; }
+        .body { max-width:720px; margin:0 auto; padding:2rem 1.5rem; }
+        .tabs { display:flex; border-bottom:1px solid #1A1A1A; margin-bottom:2.5rem; }
+        .t { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.75rem 1.5rem; cursor:pointer; color:#555; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.2s; }
+        .t.on { color:#C9A84C; border-bottom-color:#C9A84C; }
+        .h1 { font-size:1.5rem; font-weight:800; color:#F5F0E8; margin-bottom:1.75rem; letter-spacing:-0.02em; }
+        .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+        @media(max-width:520px){.grid2{grid-template-columns:1fr;}}
+        .f { display:flex; flex-direction:column; gap:0.4rem; }
+        .f.full { grid-column:1/-1; }
+        .f label { font-family:'DM Mono',monospace; font-size:0.7rem; color:#666; letter-spacing:0.1em; text-transform:uppercase; }
+        .f label .req { color:#C9A84C; }
+        .f input, .f textarea { background:#111; border:1px solid #222; color:#F5F0E8; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.7rem 1rem; border-radius:2px; outline:none; width:100%; transition:border-color 0.2s; }
+        .f input:focus, .f textarea:focus { border-color:#C9A84C; }
+        .f textarea { resize:vertical; min-height:90px; }
+        .upload-zone { border:1px dashed #333; border-radius:2px; padding:1.5rem; text-align:center; cursor:pointer; transition:border-color 0.2s; }
+        .upload-zone:hover { border-color:#C9A84C; }
+        .upload-zone input { display:none; }
+        .upload-hint { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; }
+        .upload-hint span { color:#C9A84C; }
+        .thumbs { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.75rem; }
+        .thumb { width:70px; height:70px; object-fit:cover; border-radius:2px; border:1px solid #333; }
+        .submit { margin-top:2rem; width:100%; background:#C9A84C; color:#0A0A0A; border:none; font-family:'Syne',sans-serif; font-weight:800; font-size:0.9rem; letter-spacing:0.08em; padding:1rem; cursor:pointer; border-radius:2px; transition:opacity 0.2s; text-transform:uppercase; }
+        .submit:hover:not(:disabled) { opacity:0.85; }
+        .submit:disabled { opacity:0.4; cursor:not-allowed; }
+        .err { font-family:'DM Mono',monospace; font-size:0.72rem; color:#EF4444; margin-top:0.75rem; }
+        .success { text-align:center; padding:3rem 1rem; }
+        .success-icon { font-size:3rem; margin-bottom:1rem; }
+        .success-title { font-size:1.5rem; font-weight:700; color:#10B981; margin-bottom:0.5rem; }
+        .success-sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; }
+        .olist { display:flex; flex-direction:column; gap:1rem; }
+        .ocard { background:#111; border:1px solid #1A1A1A; border-radius:2px; padding:1.25rem 1.5rem; }
+        .ocard-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem; }
+        .oid { font-family:'DM Mono',monospace; font-size:0.72rem; color:#C9A84C; }
+        .pill { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.25rem 0.6rem; border-radius:99px; }
+        .opart { font-size:1rem; font-weight:700; color:#F5F0E8; margin-bottom:0.2rem; }
+        .ocar { font-family:'DM Mono',monospace; font-size:0.72rem; color:#888; }
+        .oquote { font-family:'DM Mono',monospace; font-size:0.78rem; color:#10B981; margin-top:0.5rem; }
+        .odate { font-family:'DM Mono',monospace; font-size:0.65rem; color:#444; margin-top:0.5rem; }
+        .empty { text-align:center; padding:4rem 1rem; font-family:'DM Mono',monospace; font-size:0.75rem; color:#444; }
+      `}</style>
+      <div className="portal">
+        <div className="hdr">
+          <div className="hdr-logo">SPARES<span>ANYWHERE</span> <span style={{fontWeight:400,color:"#555",fontSize:"0.85rem"}}>/ Garage Portal</span></div>
+          <button className="back" onClick={onBack}>← Back</button>
+        </div>
+        <div className="body">
+          <div className="tabs">
+            <div className={`t ${tab==="new"?"on":""}`} onClick={() => setTab("new")}>New Order</div>
+            <div className={`t ${tab==="history"?"on":""}`} onClick={() => setTab("history")}>Order History</div>
+          </div>
+          {tab === "new" && (submitted ? (
+            <div className="success">
+              <div className="success-icon">✅</div>
+              <div className="success-title">Order Submitted!</div>
+              <div className="success-sub">Your request has been sent. Redirecting…</div>
+            </div>
+          ) : (
+            <>
+              <div className="h1">Submit Part Request</div>
+              <div className="grid2">
+                <div className="f"><label>Garage Name <span className="req">*</span></label><input placeholder="e.g. Lagos Auto Works" value={form.garage} onChange={e=>setForm(f=>({...f,garage:e.target.value}))}/></div>
+                <div className="f"><label>Car Make & Model <span className="req">*</span></label><input placeholder="e.g. BMW 5 Series" value={form.car} onChange={e=>setForm(f=>({...f,car:e.target.value}))}/></div>
+                <div className="f"><label>Year</label><input placeholder="e.g. 2019" value={form.year} onChange={e=>setForm(f=>({...f,year:e.target.value}))}/></div>
+                <div className="f"><label>Part Required <span className="req">*</span></label><input placeholder="e.g. Front Brake Caliper" value={form.part} onChange={e=>setForm(f=>({...f,part:e.target.value}))}/></div>
+                <div className="f full"><label>Additional Notes</label><textarea placeholder="Part number, OEM/aftermarket preference, urgency…" value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))}/></div>
+                <div className="f full">
+                  <label>Photos (VIN Plate / Part Reference)</label>
+                  <div className="upload-zone" onClick={()=>document.getElementById("photo-inp").click()}>
+                    <input id="photo-inp" type="file" accept="image/*" multiple onChange={handlePhoto}/>
+                    <div className="upload-hint">Click to upload — <span>VIN plates, part photos, damage reference</span></div>
+                  </div>
+                  {form.photos.length > 0 && <div className="thumbs">{form.photos.map((p,i)=><img key={i} src={p.data} alt={p.name} className="thumb"/>)}</div>}
+                </div>
+              </div>
+              <button className="submit" onClick={handleSubmit} disabled={submitting||!form.garage||!form.car||!form.part}>
+                {submitting ? "Submitting…" : "Submit Order →"}
+              </button>
+              {error && <div className="err">{error}</div>}
+            </>
+          ))}
+          {tab === "history" && (
+            <>
+              <div className="h1">Your Orders</div>
+              {loading ? <div className="empty">Loading…</div> : orders.length === 0 ? (
+                <div className="empty">No orders yet. Submit your first request above.</div>
+              ) : (
+                <div className="olist">
+                  {orders.map(o => (
+                    <div key={o.id} className="ocard">
+                      <div className="ocard-top">
+                        <span className="oid">{o.id}</span>
+                        <span className="pill" style={{background:STATUS[o.status]?.color+"22",color:STATUS[o.status]?.color}}>{STATUS[o.status]?.label}</span>
+                      </div>
+                      <div className="opart">{o.part}</div>
+                      <div className="ocar">{o.car} {o.year}</div>
+                      {o.quote && <div className="oquote">💰 {o.quote}</div>}
+                      <div className="odate">{new Date(o.createdAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function AdminDashboard({ onBack }) {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
+  const [sel, setSel] = useState(null);
+  const [quoteInput, setQuoteInput] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const fetch = useCallback(async () => {
+    const o = await loadOrders(); setOrders(o.map(mapOrder)); setLoading(false);
+  }, []);
+  useEffect(() => { fetch(); }, [fetch]);
+
+  const filtered = filter === "all" ? orders : orders.filter(o => o.status === filter);
+  const counts = Object.keys(STATUS).reduce((a, s) => { a[s] = orders.filter(o => o.status === s).length; return a; }, {});
+
+  async function updateOrder(id, changes) {
+    setSaving(true);
+    try {
+      await patchOrder(id, changes);
+      const fresh = await loadOrders();
+      const mapped = fresh.map(mapOrder);
+      setOrders(mapped);
+      if (sel?.id === id) setSel(mapped.find(o => o.id === id));
+    } catch (e) { console.error(e); }
+    setSaving(false);
+  }
+
+  return (
+    <>
+      <style>{FONT}{BASE}{`
+        .adm { min-height:100vh; background:#080808; font-family:'Syne',sans-serif; display:flex; flex-direction:column; }
+        .ahdr { display:flex; align-items:center; justify-content:space-between; padding:1.25rem 2rem; border-bottom:1px solid #1A1A1A; }
+        .alogo { font-size:1.1rem; font-weight:800; color:#F5F0E8; }
+        .alogo span { color:#C9A84C; }
+        .back { font-family:'DM Mono',monospace; font-size:0.72rem; color:#555; cursor:pointer; letter-spacing:0.1em; text-transform:uppercase; border:1px solid #222; padding:0.4rem 0.9rem; border-radius:2px; background:none; transition:all 0.2s; }
+        .back:hover { color:#C9A84C; border-color:#C9A84C; }
+        .abody { display:flex; flex:1; overflow:hidden; min-height:0; }
+        .aside { width:240px; border-right:1px solid #1A1A1A; padding:1.5rem 1rem; flex-shrink:0; overflow-y:auto; }
+        @media(max-width:700px){.abody{flex-direction:column;}.aside{width:100%;border-right:none;border-bottom:1px solid #1A1A1A;overflow-y:visible;}}
+        .aside-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#444; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.75rem; padding-left:0.5rem; }
+        .fb { display:flex; justify-content:space-between; align-items:center; width:100%; background:none; border:none; padding:0.5rem 0.75rem; cursor:pointer; border-radius:2px; font-family:'Syne',sans-serif; font-size:0.82rem; color:#888; transition:all 0.15s; text-align:left; }
+        .fb:hover { background:#111; color:#F5F0E8; }
+        .fb.on { background:#161610; color:#C9A84C; }
+        .fc { font-family:'DM Mono',monospace; font-size:0.7rem; color:#444; }
+        .amain { flex:1; overflow-y:auto; padding:1.5rem; }
+        .stats { display:flex; gap:1rem; margin-bottom:2rem; flex-wrap:wrap; }
+        .sbox { background:#111; border:1px solid #1A1A1A; border-radius:2px; padding:1rem 1.25rem; min-width:110px; }
+        .snum { font-size:1.75rem; font-weight:800; color:#F5F0E8; }
+        .slbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#555; margin-top:0.2rem; letter-spacing:0.1em; text-transform:uppercase; }
+        .orow { background:#111; border:1px solid #1A1A1A; border-radius:2px; padding:1rem 1.25rem; cursor:pointer; transition:all 0.15s; display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:0.75rem; }
+        .orow:hover { border-color:#333; background:#141414; }
+        .orow.sel { border-color:#C9A84C; background:#141410; }
+        .orow-id { font-family:'DM Mono',monospace; font-size:0.7rem; color:#C9A84C; margin-bottom:0.3rem; }
+        .orow-part { font-size:0.95rem; font-weight:700; color:#F5F0E8; }
+        .orow-meta { font-family:'DM Mono',monospace; font-size:0.7rem; color:#666; margin-top:0.2rem; }
+        .pill { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.25rem 0.6rem; border-radius:99px; white-space:nowrap; }
+        .detail { background:#111; border:1px solid #C9A84C; border-radius:2px; padding:1.75rem; margin-top:1.5rem; }
+        .dtitle { font-size:1.2rem; font-weight:800; color:#F5F0E8; margin-bottom:0.25rem; }
+        .did { font-family:'DM Mono',monospace; font-size:0.72rem; color:#C9A84C; margin-bottom:1.5rem; }
+        .dgrid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+        @media(max-width:500px){.dgrid{grid-template-columns:1fr;}}
+        .dfield label { font-family:'DM Mono',monospace; font-size:0.65rem; color:#555; letter-spacing:0.1em; text-transform:uppercase; display:block; margin-bottom:0.3rem; }
+        .dfield p { font-size:0.88rem; color:#DDD; }
+        .dphotos { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.5rem; }
+        .dphoto { width:90px; height:90px; object-fit:cover; border-radius:2px; border:1px solid #333; cursor:pointer; }
+        .dlbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#555; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.75rem; }
+        .sgrid { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.5rem; }
+        .sopt { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; padding:0.35rem 0.75rem; border-radius:2px; border:1px solid #222; cursor:pointer; transition:all 0.15s; background:none; color:#666; }
+        .sopt:hover { border-color:#555; color:#EEE; }
+        .sopt.on { color:#0A0A0A; border-color:transparent; }
+        .qrow { display:flex; gap:0.75rem; margin-bottom:1.5rem; align-items:center; }
+        .qi { flex:1; background:#0A0A0A; border:1px solid #333; color:#F5F0E8; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.6rem 1rem; border-radius:2px; outline:none; }
+        .qi:focus { border-color:#C9A84C; }
+        .qbtn { background:#C9A84C; color:#0A0A0A; border:none; font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; padding:0.6rem 1.25rem; cursor:pointer; border-radius:2px; white-space:nowrap; transition:opacity 0.2s; }
+        .qbtn:hover { opacity:0.85; }
+        .cquote { font-family:'DM Mono',monospace; font-size:0.78rem; color:#10B981; background:#0A1A0F; border:1px solid #1A3A1F; padding:0.6rem 1rem; border-radius:2px; margin-bottom:1.5rem; }
+        .notes { background:#0A0A0A; border:1px solid #1A1A1A; border-radius:2px; padding:0.75rem 1rem; font-family:'DM Mono',monospace; font-size:0.78rem; color:#888; line-height:1.6; margin-bottom:1.5rem; }
+        .empty { text-align:center; padding:4rem 1rem; font-family:'DM Mono',monospace; font-size:0.75rem; color:#444; }
+        .h1 { font-size:1.5rem; font-weight:800; color:#F5F0E8; margin-bottom:1.75rem; letter-spacing:-0.02em; }
+      `}</style>
+      <div className="adm">
+        <div className="ahdr">
+          <div className="alogo">SPARES<span>ANYWHERE</span> <span style={{fontWeight:400,color:"#555",fontSize:"0.85rem"}}>/ Admin</span></div>
+          <button className="back" onClick={onBack}>← Exit</button>
+        </div>
+        <div className="abody">
+          <div className="aside">
+            <div className="aside-lbl">Filter</div>
+            <button className={`fb ${filter==="all"?"on":""}`} onClick={()=>setFilter("all")}>All Orders <span className="fc">{orders.length}</span></button>
+            {Object.entries(STATUS).map(([k,s])=>(
+              <button key={k} className={`fb ${filter===k?"on":""}`} onClick={()=>setFilter(k)}>
+                {s.label} <span className="fc">{counts[k]||0}</span>
+              </button>
+            ))}
+          </div>
+          <div className="amain">
+            <div className="stats">
+              <div className="sbox"><div className="snum">{orders.length}</div><div className="slbl">Total</div></div>
+              <div className="sbox"><div className="snum">{counts.pending||0}</div><div className="slbl">Pending</div></div>
+              <div className="sbox"><div className="snum">{counts.fulfilled||0}</div><div className="slbl">Fulfilled</div></div>
+            </div>
+            {loading ? <div className="empty">Loading orders…</div> : filtered.length===0 ? (
+              <div className="empty">No orders here yet.</div>
+            ) : filtered.map(o=>(
+              <div key={o.id} className={`orow ${sel?.id===o.id?"sel":""}`} onClick={()=>{setSel(o);setQuoteInput(o.quote||"");}}>
+                <div>
+                  <div className="orow-id">{o.id}</div>
+                  <div className="orow-part">{o.part}</div>
+                  <div className="orow-meta">{o.car} {o.year&&`· ${o.year}`} · {o.garage}</div>
+                </div>
+                <span className="pill" style={{background:STATUS[o.status]?.color+"22",color:STATUS[o.status]?.color}}>{STATUS[o.status]?.label}</span>
+              </div>
+            ))}
+            {sel && (
+              <div className="detail">
+                <div className="dtitle">{sel.part}</div>
+                <div className="did">{sel.id} · {new Date(sel.createdAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</div>
+                <div className="dgrid">
+                  <div className="dfield"><label>Garage</label><p>{sel.garage}</p></div>
+                  <div className="dfield"><label>Vehicle</label><p>{sel.car} {sel.year}</p></div>
+                </div>
+                {sel.notes && <><div className="dlbl">Notes from Garage</div><div className="notes">{sel.notes}</div></>}
+                {sel.photos?.length>0 && (
+                  <><div className="dlbl">Attached Photos</div>
+                  <div className="dphotos">{sel.photos.map((p,i)=><img key={i} src={p.data} alt={p.name} className="dphoto" onClick={()=>window.open(p.data)}/>)}</div></>
+                )}
+                <div className="dlbl">Update Status</div>
+                <div className="sgrid">
+                  {Object.entries(STATUS).map(([k,s])=>(
+                    <button key={k} className={`sopt ${sel.status===k?"on":""}`}
+                      style={sel.status===k?{background:s.color,borderColor:s.color}:{}}
+                      onClick={()=>updateOrder(sel.id,{status:k})}>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+                {sel.quote && <div className="cquote">💰 Current quote: {sel.quote}</div>}
+                <div className="dlbl">Add / Update Quote</div>
+                <div className="qrow">
+                  <input className="qi" placeholder="e.g. ₦85,000 — OEM, ships 5–7 days" value={quoteInput} onChange={e=>setQuoteInput(e.target.value)}/>
+                  <button className="qbtn" onClick={()=>updateOrder(sel.id,{quote:quoteInput,status:"quoted"})} disabled={saving}>
+                    {saving?"Saving…":"Save Quote"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
