@@ -124,15 +124,10 @@ export default function App() {
 }
 
 function GaragePortal({ onBack }) {
-  const [tab, setTab] = useState("new");
-  const [orders, setOrders] = useState([]);
   const [form, setForm] = useState({ garage: "", car: "", year: "", part: "", notes: "", photos: [] });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  useEffect(() => { loadOrders().then(o => { setOrders(o.map(mapOrder)); setLoading(false); }); }, []);
 
   function handlePhoto(e) {
     Array.from(e.target.files).forEach(file => {
@@ -148,13 +143,11 @@ function GaragePortal({ onBack }) {
     const order = { id: "ORD-" + Date.now().toString(36).toUpperCase(), ...form };
     try {
       await createOrder(order);
-      const fresh = await loadOrders();
-      setOrders(fresh.map(mapOrder));
       setSubmitted(true);
       setForm({ garage: "", car: "", year: "", part: "", notes: "", photos: [] });
-      setTimeout(() => { setSubmitted(false); setTab("history"); }, 2000);
+      setTimeout(() => { setSubmitted(false); }, 3000);
     } catch (e) {
-      setError("Failed to submit. Check your Supabase credentials.");
+      setError("Failed to submit. Check your connection and try again.");
     }
     setSubmitting(false);
   }
@@ -214,15 +207,11 @@ function GaragePortal({ onBack }) {
           <button className="back" onClick={onBack}>← Back</button>
         </div>
         <div className="body">
-          <div className="tabs">
-            <div className={`t ${tab==="new"?"on":""}`} onClick={() => setTab("new")}>New Order</div>
-            <div className={`t ${tab==="history"?"on":""}`} onClick={() => setTab("history")}>Order History</div>
-          </div>
-          {tab === "new" && (submitted ? (
+          {submitted ? (
             <div className="success">
               <div className="success-icon">✅</div>
               <div className="success-title">Order Submitted!</div>
-              <div className="success-sub">Your request has been sent. Redirecting…</div>
+              <div className="success-sub">Your request has been received. We'll be in touch shortly.</div>
             </div>
           ) : (
             <>
@@ -246,29 +235,6 @@ function GaragePortal({ onBack }) {
                 {submitting ? "Submitting…" : "Submit Order →"}
               </button>
               {error && <div className="err">{error}</div>}
-            </>
-          ))}
-          {tab === "history" && (
-            <>
-              <div className="h1">Your Orders</div>
-              {loading ? <div className="empty">Loading…</div> : orders.length === 0 ? (
-                <div className="empty">No orders yet. Submit your first request above.</div>
-              ) : (
-                <div className="olist">
-                  {orders.map(o => (
-                    <div key={o.id} className="ocard">
-                      <div className="ocard-top">
-                        <span className="oid">{o.id}</span>
-                        <span className="pill" style={{background:STATUS[o.status]?.color+"22",color:STATUS[o.status]?.color}}>{STATUS[o.status]?.label}</span>
-                      </div>
-                      <div className="opart">{o.part}</div>
-                      <div className="ocar">{o.car} {o.year}</div>
-                      {o.quote && <div className="oquote">💰 {o.quote}</div>}
-                      <div className="odate">{new Date(o.createdAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </>
           )}
         </div>
