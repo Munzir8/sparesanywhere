@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 
 // ─── PASTE YOUR SUPABASE CREDENTIALS HERE ───────────────────────────────────
-const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
+const SUPABASE_URL = "https://yrvhwbfcraxpivoaiuxa.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlydmh3YmZjcmF4cGl2b2FpdXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyOTk4NTYsImV4cCI6MjA4ODg3NTg1Nn0.3iRlq-XIEG2DumgNxwmTQpwR8Qc_zT1ttTf8RiVNvaY";
 // ────────────────────────────────────────────────────────────────────────────
 
 async function sbFetch(path, opts = {}) {
@@ -83,8 +83,7 @@ export default function App() {
         .home { min-height:100vh; background:#0A0A0A; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Syne',sans-serif; padding:2rem; }
         .logo { font-size:clamp(1.6rem,5vw,3rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
         .logo span { color:#C9A84C; }
-        .sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1rem; }
-        .slogan { font-family:'DM Mono',monospace; font-size:0.82rem; color:#C9A84C; letter-spacing:0.05em; margin-bottom:4rem; text-align:center; opacity:0.85; }
+        .sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4rem; }
         .cards { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; max-width:680px; width:100%; }
         @media(max-width:520px){.cards{grid-template-columns:1fr;}}
         .card { border:1px solid #222; border-radius:2px; padding:2.5rem 2rem; background:#111; transition:all 0.2s; }
@@ -102,7 +101,6 @@ export default function App() {
       <div className="home">
         <div className="logo">SPARES<span>ANYWHERE</span></div>
         <div className="sub">Automotive Parts · UK · Dubai · Nigeria</div>
-        <div className="slogan">Find the parts you need, anytime, anywhere at sparesanywhere.com</div>
         <div className="cards">
           <div className="card clickable" onClick={() => setView("garage")}>
             <div className="card-icon">🔧</div>
