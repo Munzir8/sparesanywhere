@@ -69,6 +69,10 @@ export default function App() {
   const [pwError, setPwError] = useState(false);
   const ADMIN_PASSWORD = "munzir2025";
 
+  // Admin card only appears when URL contains ?admin (e.g. yoursite.com/?admin)
+  // Bookmark that URL on your laptop — regular visitors will never see the admin section
+  const isAdminDevice = new URLSearchParams(window.location.search).has("admin");
+
   function enterAdmin() {
     if (adminPw === ADMIN_PASSWORD) { setAdminAuth(true); setView("admin"); setPwError(false); }
     else setPwError(true);
@@ -84,7 +88,7 @@ export default function App() {
         .logo { font-size:clamp(1.6rem,5vw,3rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
         .logo span { color:#C9A84C; }
         .sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4rem; }
-        .cards { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; max-width:680px; width:100%; }
+        .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem; max-width:680px; width:100%; }
         @media(max-width:520px){.cards{grid-template-columns:1fr;}}
         .card { border:1px solid #222; border-radius:2px; padding:2.5rem 2rem; background:#111; transition:all 0.2s; }
         .card.clickable { cursor:pointer; }
@@ -107,6 +111,7 @@ export default function App() {
             <div className="card-title">Garage Portal</div>
             <div className="card-desc">Submit part requests, upload VIN plates or reference photos, and track order status.</div>
           </div>
+          {isAdminDevice && (
           <div className="card">
             <div className="card-icon">📊</div>
             <div className="card-title">Admin Dashboard</div>
@@ -117,6 +122,7 @@ export default function App() {
             <button className="pw-btn" onClick={enterAdmin}>ENTER →</button>
             {pwError && <div className="pw-error">Incorrect password</div>}
           </div>
+          )}
         </div>
       </div>
     </>
