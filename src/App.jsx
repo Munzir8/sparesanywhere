@@ -172,7 +172,7 @@ export default function App() {
           </div>
           <div className="logo-bar"></div>
           <div className="sub">Automotive Parts · London · Dubai · Lagos</div>
-          <div className="tagline">Source any part, anywhere in the world</div>
+          <div className="tagline">No part too rare. No market too far.</div>
         </div>
         <div className="stats">
           <div className="stat"><div className="stat-num">3</div><div className="stat-lbl">Countries</div></div>
