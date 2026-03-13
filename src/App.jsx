@@ -171,7 +171,7 @@ export default function App() {
             </div>
           </div>
           <div className="logo-bar"></div>
-          <div className="sub">Automotive Parts · UK · Dubai · Nigeria</div>
+          <div className="sub">Automotive Parts · London · Dubai · Lagos</div>
           <div className="tagline">Source any part, anywhere in the world</div>
         </div>
         <div className="stats">
@@ -206,14 +206,14 @@ export default function App() {
             <a className="wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
               <span className="wa-icon">💬</span>
               <div className="wa-info">
-                <div className="wa-region">UK</div>
+                <div className="wa-region">London</div>
                 <div className="wa-number">+44 7494 806066</div>
               </div>
             </a>
             <a className="wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
               <span className="wa-icon">💬</span>
               <div className="wa-info">
-                <div className="wa-region">Nigeria</div>
+                <div className="wa-region">Lagos</div>
                 <div className="wa-number">+234 9168 340653</div>
               </div>
             </a>
