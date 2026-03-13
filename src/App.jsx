@@ -3,9 +3,9 @@ import emailjs from "@emailjs/browser";
 import * as XLSX from "xlsx";
 
 // ─── EMAILJS CONFIG — fill these in after setting up EmailJS ─────────────────
-const EMAILJS_SERVICE_ID  = "YOUR_SERVICE_ID";   // from emailjs.com → Email Services
-const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID";  // from emailjs.com → Email Templates
-const EMAILJS_PUBLIC_KEY  = "YOUR_PUBLIC_KEY";   // from emailjs.com → Account → Public Key
+const EMAILJS_SERVICE_ID  = "munzirkhan812@gmail.com";   // from emailjs.com → Email Services
+const EMAILJS_TEMPLATE_ID = "template_ldql2g6";  // from emailjs.com → Email Templates
+const EMAILJS_PUBLIC_KEY  = "bC187q-CO5pMEBWGA";  // from emailjs.com → Account → Public Key
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── PASTE YOUR SUPABASE CREDENTIALS HERE ───────────────────────────────────
@@ -98,6 +98,13 @@ export default function App() {
       <style>{FONT}{BASE}{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes shimmer { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+        @keyframes stickBob { 0%,100%{transform:translateY(0) rotate(-2deg);} 50%{transform:translateY(-5px) rotate(2deg);} }
+        @keyframes screwTwist { 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(28deg);} }
+        @keyframes legSwing { 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(12deg);} }
+        .stick-wrap { display:inline-block; vertical-align:middle; margin-left:0.6rem; opacity:0.85; }
+        .stick-svg { animation:stickBob 1.8s ease-in-out infinite; transform-origin:50% 95%; overflow:visible; }
+        .screw-arm { animation:screwTwist 1.8s ease-in-out infinite; transform-origin:13px 14px; }
+        .stick-leg { animation:legSwing 1.8s ease-in-out infinite alternate; transform-origin:13px 24px; }
         .home { min-height:100vh; background:#0A0A0A; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Syne',sans-serif; padding:2rem; }
         .brand { text-align:center; animation:fadeUp 0.6s ease both; }
         .logo { font-size:clamp(1.6rem,5vw,3rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
@@ -135,7 +142,23 @@ export default function App() {
       `}</style>
       <div className="home">
         <div className="brand">
-          <div className="logo">SPARES<span>ANYWHERE</span></div>
+          <div className="logo">SPARES<span>ANYWHERE</span>
+            <span className="stick-wrap">
+              <svg className="stick-svg" viewBox="0 0 34 44" width="20" height="28" fill="none" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="13" cy="5" r="4" />
+                <line x1="13" y1="9" x2="13" y2="24" />
+                <line x1="13" y1="15" x2="5" y2="21" />
+                <g className="screw-arm">
+                  <line x1="13" y1="15" x2="21" y2="21" />
+                  <line x1="21" y1="21" x2="27" y2="13" />
+                  <line x1="25.5" y1="11.5" x2="29" y2="15" />
+                  <line x1="27" y1="13" x2="29" y2="11" />
+                </g>
+                <line x1="13" y1="24" x2="7" y2="37" />
+                <line className="stick-leg" x1="13" y1="24" x2="19" y2="37" />
+              </svg>
+            </span>
+          </div>
           <div className="logo-bar"></div>
           <div className="sub">Automotive Parts · UK · Dubai · Nigeria</div>
           <div className="tagline">Source any part, anywhere in the world</div>
