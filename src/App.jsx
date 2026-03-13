@@ -98,11 +98,17 @@ export default function App() {
       <style>{FONT}{BASE}{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes shimmer { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
-        @keyframes stickBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-2px);} }
-        @keyframes fixArm { 0%,100%{transform:rotate(-20deg);} 50%{transform:rotate(12deg);} }
-        .stick-wrap { display:inline-block; vertical-align:middle; margin-left:0.75rem; opacity:0.9; }
-        .stick-svg { animation:stickBob 1.2s ease-in-out infinite; overflow:visible; }
-        .fix-arm { animation:fixArm 0.9s ease-in-out infinite; transform-origin:7px 24px; }
+        @keyframes walkerMove { 0%{transform:translateX(-140px) scaleX(1);} 47%{transform:translateX(140px) scaleX(1);} 50%{transform:translateX(140px) scaleX(-1);} 97%{transform:translateX(-140px) scaleX(-1);} 100%{transform:translateX(-140px) scaleX(1);} }
+        @keyframes walkBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);} }
+        @keyframes swingF { 0%,100%{transform:rotate(28deg);} 50%{transform:rotate(-28deg);} }
+        @keyframes swingB { 0%,100%{transform:rotate(-28deg);} 50%{transform:rotate(28deg);} }
+        .walker-wrap { position:relative; height:32px; margin:0.3rem 0 0.1rem; overflow:visible; }
+        .walker { position:absolute; left:50%; top:0; animation:walkerMove 3.5s linear infinite; }
+        .walker-svg { animation:walkBob 0.35s ease-in-out infinite; overflow:visible; }
+        .wll { animation:swingF 0.35s ease-in-out infinite; transform-origin:9px 19px; }
+        .wrl { animation:swingB 0.35s ease-in-out infinite; transform-origin:9px 19px; }
+        .wla { animation:swingB 0.35s ease-in-out infinite; transform-origin:9px 11px; }
+        .wra { animation:swingF 0.35s ease-in-out infinite; transform-origin:9px 11px; }
         .home { min-height:100vh; background:#0A0A0A; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Syne',sans-serif; padding:2rem; }
         .brand { text-align:center; animation:fadeUp 0.6s ease both; }
         .logo { font-size:clamp(1.6rem,5vw,3rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
@@ -140,33 +146,18 @@ export default function App() {
       `}</style>
       <div className="home">
         <div className="brand">
-          <div className="logo">SPARES<span>ANYWHERE</span>
-            <span className="stick-wrap">
-              <svg className="stick-svg" viewBox="0 0 72 50" width="58" height="40" fill="none" stroke="#C9A84C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                {/* Ground */}
-                <line x1="4" y1="45" x2="68" y2="45" strokeOpacity="0.15" />
-                {/* Left wheel */}
-                <circle cx="19" cy="45" r="5" />
-                {/* Right wheel */}
-                <circle cx="55" cy="45" r="5" />
-                {/* Car body */}
-                <polyline points="9,39 11,31 23,31 27,22 51,22 55,31 65,31 67,39" />
-                <line x1="9" y1="39" x2="14" y2="39" />
-                <line x1="24" y1="39" x2="50" y2="39" />
-                <line x1="60" y1="39" x2="67" y2="39" />
-                {/* Stick figure leaning over hood */}
-                <circle cx="6" cy="17" r="3.5" />
-                <line x1="6" y1="20.5" x2="9" y2="31" />
-                <line x1="7" y1="25" x2="3" y2="29" />
-                <g className="fix-arm">
-                  <line x1="7" y1="24" x2="12" y2="31" />
-                  <line x1="12" y1="31" x2="14" y2="28" />
-                  <line x1="13" y1="27" x2="16" y2="30" />
-                </g>
-                <line x1="9" y1="31" x2="6" y2="42" />
-                <line x1="9" y1="31" x2="12" y2="41" />
+          <div className="logo">SPARES<span>ANYWHERE</span></div>
+          <div className="walker-wrap">
+            <div className="walker">
+              <svg className="walker-svg" viewBox="0 0 18 32" width="14" height="26" fill="none" stroke="#C9A84C" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="4" r="3.2" />
+                <line x1="9" y1="7" x2="9" y2="19" />
+                <line className="wla" x1="9" y1="11" x2="3" y2="16" />
+                <line className="wra" x1="9" y1="11" x2="15" y2="16" />
+                <line className="wll" x1="9" y1="19" x2="4" y2="29" />
+                <line className="wrl" x1="9" y1="19" x2="14" y2="29" />
               </svg>
-            </span>
+            </div>
           </div>
           <div className="logo-bar"></div>
           <div className="sub">Automotive Parts · UK · Dubai · Nigeria</div>
