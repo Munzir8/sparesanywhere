@@ -98,17 +98,15 @@ export default function App() {
       <style>{FONT}{BASE}{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes shimmer { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
-        @keyframes stickBob { 0%,100%{transform:translateY(0) rotate(-2deg);} 50%{transform:translateY(-5px) rotate(2deg);} }
-        @keyframes screwTwist { 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(28deg);} }
-        @keyframes legSwing { 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(12deg);} }
-        .stick-wrap { display:inline-block; vertical-align:middle; margin-left:0.6rem; opacity:0.85; }
-        .stick-svg { animation:stickBob 1.8s ease-in-out infinite; transform-origin:50% 95%; overflow:visible; }
-        .screw-arm { animation:screwTwist 1.8s ease-in-out infinite; transform-origin:13px 14px; }
-        .stick-leg { animation:legSwing 1.8s ease-in-out infinite alternate; transform-origin:13px 24px; }
+        @keyframes stickBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-2px);} }
+        @keyframes fixArm { 0%,100%{transform:rotate(-20deg);} 50%{transform:rotate(12deg);} }
+        .stick-wrap { display:inline-block; vertical-align:middle; margin-left:0.75rem; opacity:0.9; }
+        .stick-svg { animation:stickBob 1.2s ease-in-out infinite; overflow:visible; }
+        .fix-arm { animation:fixArm 0.9s ease-in-out infinite; transform-origin:7px 24px; }
         .home { min-height:100vh; background:#0A0A0A; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Syne',sans-serif; padding:2rem; }
         .brand { text-align:center; animation:fadeUp 0.6s ease both; }
         .logo { font-size:clamp(1.6rem,5vw,3rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
-        .logo span { color:#C9A84C; animation:shimmer 4s ease-in-out infinite; display:inline-block; }
+        .logo > span:first-of-type { color:#C9A84C; animation:shimmer 4s ease-in-out infinite; display:inline-block; }
         .logo-bar { width:2rem; height:1px; background:#C9A84C; margin:0.6rem auto; opacity:0.5; }
         .sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.75rem; }
         .tagline { font-family:'DM Mono',monospace; font-size:0.72rem; color:#444; letter-spacing:0.05em; margin-bottom:1.5rem; }
@@ -144,18 +142,29 @@ export default function App() {
         <div className="brand">
           <div className="logo">SPARES<span>ANYWHERE</span>
             <span className="stick-wrap">
-              <svg className="stick-svg" viewBox="0 0 34 44" width="20" height="28" fill="none" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="13" cy="5" r="4" />
-                <line x1="13" y1="9" x2="13" y2="24" />
-                <line x1="13" y1="15" x2="5" y2="21" />
-                <g className="screw-arm">
-                  <line x1="13" y1="15" x2="21" y2="21" />
-                  <line x1="21" y1="21" x2="27" y2="13" />
-                  <line x1="25.5" y1="11.5" x2="29" y2="15" />
-                  <line x1="27" y1="13" x2="29" y2="11" />
+              <svg className="stick-svg" viewBox="0 0 72 50" width="58" height="40" fill="none" stroke="#C9A84C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                {/* Ground */}
+                <line x1="4" y1="45" x2="68" y2="45" strokeOpacity="0.15" />
+                {/* Left wheel */}
+                <circle cx="19" cy="45" r="5" />
+                {/* Right wheel */}
+                <circle cx="55" cy="45" r="5" />
+                {/* Car body */}
+                <polyline points="9,39 11,31 23,31 27,22 51,22 55,31 65,31 67,39" />
+                <line x1="9" y1="39" x2="14" y2="39" />
+                <line x1="24" y1="39" x2="50" y2="39" />
+                <line x1="60" y1="39" x2="67" y2="39" />
+                {/* Stick figure leaning over hood */}
+                <circle cx="6" cy="17" r="3.5" />
+                <line x1="6" y1="20.5" x2="9" y2="31" />
+                <line x1="7" y1="25" x2="3" y2="29" />
+                <g className="fix-arm">
+                  <line x1="7" y1="24" x2="12" y2="31" />
+                  <line x1="12" y1="31" x2="14" y2="28" />
+                  <line x1="13" y1="27" x2="16" y2="30" />
                 </g>
-                <line x1="13" y1="24" x2="7" y2="37" />
-                <line className="stick-leg" x1="13" y1="24" x2="19" y2="37" />
+                <line x1="9" y1="31" x2="6" y2="42" />
+                <line x1="9" y1="31" x2="12" y2="41" />
               </svg>
             </span>
           </div>
