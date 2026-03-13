@@ -45,6 +45,10 @@ async function patchOrder(id, changes) {
   });
 }
 
+async function removeOrder(id) {
+  return sbFetch(`/orders?id=eq.${id}`, { method: "DELETE" });
+}
+
 // Map DB snake_case → camelCase for UI
 function mapOrder(o) {
   return { ...o, createdAt: o.created_at, updatedAt: o.updated_at };
@@ -256,6 +260,7 @@ function AdminDashboard({ onBack }) {
   const [sel, setSel] = useState(null);
   const [quoteInput, setQuoteInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetch = useCallback(async () => {
     const o = await loadOrders(); setOrders(o.map(mapOrder)); setLoading(false);
@@ -264,6 +269,17 @@ function AdminDashboard({ onBack }) {
 
   const filtered = filter === "all" ? orders : orders.filter(o => o.status === filter);
   const counts = Object.keys(STATUS).reduce((a, s) => { a[s] = orders.filter(o => o.status === s).length; return a; }, {});
+
+  async function handleDelete(id) {
+    if (!window.confirm("Are you sure you want to delete this order? This cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      await removeOrder(id);
+      setOrders(prev => prev.filter(o => o.id !== id));
+      setSel(null);
+    } catch (e) { console.error(e); }
+    setDeleting(false);
+  }
 
   async function updateOrder(id, changes) {
     setSaving(true);
@@ -325,6 +341,8 @@ function AdminDashboard({ onBack }) {
         .qi:focus { border-color:#C9A84C; }
         .qbtn { background:#C9A84C; color:#0A0A0A; border:none; font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; padding:0.6rem 1.25rem; cursor:pointer; border-radius:2px; white-space:nowrap; transition:opacity 0.2s; }
         .qbtn:hover { opacity:0.85; }
+        .delbtn { width:100%; background:none; border:1px solid #3A1A1A; color:#EF4444; font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.05em; padding:0.65rem; cursor:pointer; border-radius:2px; transition:all 0.2s; margin-top:0.5rem; }
+        .delbtn:hover { background:#1A0505; border-color:#EF4444; }
         .cquote { font-family:'DM Mono',monospace; font-size:0.78rem; color:#10B981; background:#0A1A0F; border:1px solid #1A3A1F; padding:0.6rem 1rem; border-radius:2px; margin-bottom:1.5rem; }
         .notes { background:#0A0A0A; border:1px solid #1A1A1A; border-radius:2px; padding:0.75rem 1rem; font-family:'DM Mono',monospace; font-size:0.78rem; color:#888; line-height:1.6; margin-bottom:1.5rem; }
         .empty { text-align:center; padding:4rem 1rem; font-family:'DM Mono',monospace; font-size:0.75rem; color:#444; }
@@ -394,6 +412,9 @@ function AdminDashboard({ onBack }) {
                     {saving?"Saving…":"Save Quote"}
                   </button>
                 </div>
+                <button className="delbtn" onClick={()=>handleDelete(sel.id)} disabled={deleting}>
+                  {deleting ? "Deleting…" : "🗑 Delete Order"}
+                </button>
               </div>
             )}
           </div>
