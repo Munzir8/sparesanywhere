@@ -88,11 +88,21 @@ export default function App() {
   return (
     <>
       <style>{FONT}{BASE}{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes shimmer { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
         .home { min-height:100vh; background:#0A0A0A; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Syne',sans-serif; padding:2rem; }
+        .brand { text-align:center; animation:fadeUp 0.6s ease both; }
         .logo { font-size:clamp(1.6rem,5vw,3rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
-        .logo span { color:#C9A84C; }
-        .sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4rem; }
-        .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem; max-width:680px; width:100%; }
+        .logo span { color:#C9A84C; animation:shimmer 4s ease-in-out infinite; display:inline-block; }
+        .logo-bar { width:2rem; height:1px; background:#C9A84C; margin:0.6rem auto; opacity:0.5; }
+        .sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.75rem; }
+        .tagline { font-family:'DM Mono',monospace; font-size:0.72rem; color:#444; letter-spacing:0.05em; margin-bottom:1.5rem; }
+        .stats { display:flex; gap:2rem; justify-content:center; margin-bottom:3.5rem; animation:fadeUp 0.6s 0.15s ease both; opacity:0; animation-fill-mode:forwards; flex-wrap:wrap; }
+        .stat { text-align:center; }
+        .stat-num { font-size:1.1rem; font-weight:800; color:#C9A84C; letter-spacing:-0.02em; }
+        .stat-lbl { font-family:'DM Mono',monospace; font-size:0.6rem; color:#444; letter-spacing:0.1em; text-transform:uppercase; margin-top:0.15rem; }
+        .stat-div { width:1px; background:#1E1E1E; align-self:stretch; }
+        .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.5rem; max-width:680px; width:100%; animation:fadeUp 0.6s 0.3s ease both; opacity:0; animation-fill-mode:forwards; }
         @media(max-width:520px){.cards{grid-template-columns:1fr;}}
         .card { border:1px solid #222; border-radius:2px; padding:2.5rem 2rem; background:#111; transition:all 0.2s; }
         .card.clickable { cursor:pointer; }
@@ -105,7 +115,7 @@ export default function App() {
         .pw-btn { width:100%; background:#C9A84C; color:#0A0A0A; border:none; font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.05em; padding:0.65rem; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
         .pw-btn:hover { opacity:0.85; }
         .pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#EF4444; margin-top:0.4rem; }
-        .contact { margin-top:3rem; text-align:center; }
+        .contact { margin-top:3rem; text-align:center; animation:fadeUp 0.6s 0.45s ease both; opacity:0; animation-fill-mode:forwards; }
         .contact-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#444; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1rem; }
         .wa-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
         .wa-btn { display:flex; align-items:center; gap:0.5rem; background:#111; border:1px solid #222; border-radius:2px; padding:0.65rem 1.25rem; text-decoration:none; transition:all 0.2s; }
@@ -116,8 +126,19 @@ export default function App() {
         .wa-number { font-family:'DM Mono',monospace; font-size:0.78rem; color:#F5F0E8; }
       `}</style>
       <div className="home">
-        <div className="logo">SPARES<span>ANYWHERE</span></div>
-        <div className="sub">Automotive Parts · UK · Dubai · Nigeria</div>
+        <div className="brand">
+          <div className="logo">SPARES<span>ANYWHERE</span></div>
+          <div className="logo-bar"></div>
+          <div className="sub">Automotive Parts · UK · Dubai · Nigeria</div>
+          <div className="tagline">Source any part, anywhere in the world</div>
+        </div>
+        <div className="stats">
+          <div className="stat"><div className="stat-num">3</div><div className="stat-lbl">Countries</div></div>
+          <div className="stat-div"></div>
+          <div className="stat"><div className="stat-num">48h</div><div className="stat-lbl">Avg. Turnaround</div></div>
+          <div className="stat-div"></div>
+          <div className="stat"><div className="stat-num">OEM</div><div className="stat-lbl">& Aftermarket</div></div>
+        </div>
         <div className="cards">
           <div className="card clickable" onClick={() => setView("garage")}>
             <div className="card-icon">🔧</div>
