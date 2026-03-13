@@ -1,4 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
+import emailjs from "@emailjs/browser";
+import * as XLSX from "xlsx";
+
+// ─── EMAILJS CONFIG — fill these in after setting up EmailJS ─────────────────
+const EMAILJS_SERVICE_ID  = "YOUR_SERVICE_ID";   // from emailjs.com → Email Services
+const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID";  // from emailjs.com → Email Templates
+const EMAILJS_PUBLIC_KEY  = "YOUR_PUBLIC_KEY";   // from emailjs.com → Account → Public Key
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ─── PASTE YOUR SUPABASE CREDENTIALS HERE ───────────────────────────────────
 const SUPABASE_URL = "https://yrvhwbfcraxpivoaiuxa.supabase.co";
@@ -202,6 +210,17 @@ function GaragePortal({ onBack }) {
     const order = { id: "ORD-" + Date.now().toString(36).toUpperCase(), ...form };
     try {
       await createOrder(order);
+      // Send email notification
+      try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          order_id:  order.id,
+          garage:    order.garage,
+          car:       `${order.car}${order.year ? " (" + order.year + ")" : ""}`,
+          part:      order.part,
+          notes:     order.notes || "None",
+          to_email:  "munzirkhan812@gmail.com",
+        }, EMAILJS_PUBLIC_KEY);
+      } catch (emailErr) { console.error("Email failed:", emailErr); }
       setSubmitted(true);
       setForm({ garage: "", car: "", year: "", part: "", notes: "", photos: [] });
       setTimeout(() => { setSubmitted(false); }, 3000);
@@ -319,6 +338,31 @@ function AdminDashboard({ onBack }) {
   const filtered = filter === "all" ? orders : orders.filter(o => o.status === filter);
   const counts = Object.keys(STATUS).reduce((a, s) => { a[s] = orders.filter(o => o.status === s).length; return a; }, {});
 
+  function downloadExcel() {
+    const wb = XLSX.utils.book_new();
+    orders.forEach((o, idx) => {
+      const carTitle = `${(o.car || "Order").toUpperCase()} ${o.year || ""}`.trim();
+      const date = new Date(o.createdAt).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+      const data = [
+        [`🚗  ${carTitle} — ORDER SUMMARY`],
+        [`Order ID: ${o.id}  |  Garage: ${o.garage}  |  Date: ${date}`],
+        [],
+        ["#", "Part Name", "Notes", "Qty", "Buy Price (£)", "Total Cost (£)", "Sell Price (£)", "Total Sell (£)", "Profit (£)", "Status"],
+        [1, o.part, o.notes || "", 1, "", "=E5*D5", "", "=G5*D5", "=H5-F5", o.status],
+        [],
+        ["", "ORDER TOTAL", "", "", "", "=F5", "", "=H5", "=I5", ""],
+        [],
+        ["📊  ORDER SUMMARY", "", "", "", "Total Cost (£)", "Total Revenue (£)", "Gross Profit (£)", "Margin %"],
+        ["", "", "", "", "=F7", "=H7", "=I7", "=IFERROR(I10/H10,0)"],
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      ws["!cols"] = [6,22,20,5,13,13,13,13,10,10].map(w => ({ wch: w }));
+      const sheetName = `${carTitle.slice(0, 25)} #${idx + 1}`;
+      XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0, 31));
+    });
+    XLSX.writeFile(wb, "SpareAnywhere_Orders.xlsx");
+  }
+
   async function handleDelete(id) {
     if (!window.confirm("Are you sure you want to delete this order? This cannot be undone.")) return;
     setDeleting(true);
@@ -390,6 +434,8 @@ function AdminDashboard({ onBack }) {
         .qi:focus { border-color:#C9A84C; }
         .qbtn { background:#C9A84C; color:#0A0A0A; border:none; font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; padding:0.6rem 1.25rem; cursor:pointer; border-radius:2px; white-space:nowrap; transition:opacity 0.2s; }
         .qbtn:hover { opacity:0.85; }
+        .xlbtn { font-family:'DM Mono',monospace; font-size:0.7rem; color:#555; cursor:pointer; letter-spacing:0.1em; text-transform:uppercase; border:1px solid #222; padding:0.4rem 0.9rem; border-radius:2px; background:none; transition:all 0.2s; }
+        .xlbtn:hover { color:#10B981; border-color:#10B981; }
         .delbtn { width:100%; background:none; border:1px solid #3A1A1A; color:#EF4444; font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.05em; padding:0.65rem; cursor:pointer; border-radius:2px; transition:all 0.2s; margin-top:0.5rem; }
         .delbtn:hover { background:#1A0505; border-color:#EF4444; }
         .cquote { font-family:'DM Mono',monospace; font-size:0.78rem; color:#10B981; background:#0A1A0F; border:1px solid #1A3A1F; padding:0.6rem 1rem; border-radius:2px; margin-bottom:1.5rem; }
@@ -400,7 +446,10 @@ function AdminDashboard({ onBack }) {
       <div className="adm">
         <div className="ahdr">
           <div className="alogo">SPARES<span>ANYWHERE</span> <span style={{fontWeight:400,color:"#555",fontSize:"0.85rem"}}>/ Admin</span></div>
-          <button className="back" onClick={onBack}>← Exit</button>
+          <div style={{display:"flex",gap:"0.75rem"}}>
+            <button className="xlbtn" onClick={downloadExcel} disabled={orders.length===0}>⬇ Download Excel</button>
+            <button className="back" onClick={onBack}>← Exit</button>
+          </div>
         </div>
         <div className="abody">
           <div className="aside">
