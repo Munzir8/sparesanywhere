@@ -98,17 +98,14 @@ export default function App() {
       <style>{FONT}{BASE}{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes shimmer { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
-        @keyframes walkerMove { 0%{transform:translateX(-140px) scaleX(1);} 47%{transform:translateX(140px) scaleX(1);} 50%{transform:translateX(140px) scaleX(-1);} 97%{transform:translateX(-140px) scaleX(-1);} 100%{transform:translateX(-140px) scaleX(1);} }
-        @keyframes walkBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);} }
-        @keyframes swingF { 0%,100%{transform:rotate(28deg);} 50%{transform:rotate(-28deg);} }
-        @keyframes swingB { 0%,100%{transform:rotate(-28deg);} 50%{transform:rotate(28deg);} }
-        .walker-wrap { position:relative; height:32px; margin:0.3rem 0 0.1rem; overflow:visible; }
-        .walker { position:absolute; left:50%; top:0; animation:walkerMove 3.5s linear infinite; }
-        .walker-svg { animation:walkBob 0.35s ease-in-out infinite; overflow:visible; }
-        .wll { animation:swingF 0.35s ease-in-out infinite; transform-origin:9px 19px; }
-        .wrl { animation:swingB 0.35s ease-in-out infinite; transform-origin:9px 19px; }
-        .wla { animation:swingB 0.35s ease-in-out infinite; transform-origin:9px 11px; }
-        .wra { animation:swingF 0.35s ease-in-out infinite; transform-origin:9px 11px; }
+        @keyframes carDrive { 0%{transform:translateX(-150px) scaleX(1);} 47%{transform:translateX(150px) scaleX(1);} 50%{transform:translateX(150px) scaleX(-1);} 97%{transform:translateX(-150px) scaleX(-1);} 100%{transform:translateX(-150px) scaleX(1);} }
+        @keyframes carBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-1px);} }
+        @keyframes wheelSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+        .walker-wrap { position:relative; height:28px; margin:0.3rem 0 0.1rem; overflow:visible; }
+        .walker { position:absolute; left:50%; top:0; animation:carDrive 4s linear infinite; }
+        .car-svg { animation:carBob 0.3s ease-in-out infinite; overflow:visible; }
+        .wheel-f { animation:wheelSpin 0.5s linear infinite; transform-origin:9px 18px; }
+        .wheel-r { animation:wheelSpin 0.5s linear infinite; transform-origin:32px 18px; }
         .home { min-height:100vh; background:#0A0A0A; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Syne',sans-serif; padding:2rem; }
         .brand { text-align:center; animation:fadeUp 0.6s ease both; }
         .logo { font-size:clamp(1.6rem,5vw,3rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
@@ -149,13 +146,27 @@ export default function App() {
           <div className="logo">SPARES<span>ANYWHERE</span></div>
           <div className="walker-wrap">
             <div className="walker">
-              <svg className="walker-svg" viewBox="0 0 18 32" width="14" height="26" fill="none" stroke="#C9A84C" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="9" cy="4" r="3.2" />
-                <line x1="9" y1="7" x2="9" y2="19" />
-                <line className="wla" x1="9" y1="11" x2="3" y2="16" />
-                <line className="wra" x1="9" y1="11" x2="15" y2="16" />
-                <line className="wll" x1="9" y1="19" x2="4" y2="29" />
-                <line className="wrl" x1="9" y1="19" x2="14" y2="29" />
+              <svg className="car-svg" viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                {/* Car body */}
+                <polyline points="2,16 4,9 11,9 15,4 29,4 33,9 40,9 42,16" />
+                {/* Bottom gaps around wheels */}
+                <line x1="2" y1="16" x2="5" y2="16" />
+                <line x1="13" y1="16" x2="28" y2="16" />
+                <line x1="36" y1="16" x2="42" y2="16" />
+                {/* Front wheel */}
+                <g className="wheel-f">
+                  <circle cx="9" cy="18" r="4" />
+                  <line x1="9" y1="14" x2="9" y2="22" />
+                  <line x1="5" y1="18" x2="13" y2="18" />
+                </g>
+                {/* Rear wheel */}
+                <g className="wheel-r">
+                  <circle cx="32" cy="18" r="4" />
+                  <line x1="32" y1="14" x2="32" y2="22" />
+                  <line x1="28" y1="18" x2="36" y2="18" />
+                </g>
+                {/* Headlight */}
+                <circle cx="41" cy="12" r="1" fill="#C9A84C" />
               </svg>
             </div>
           </div>
