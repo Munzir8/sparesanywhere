@@ -105,6 +105,15 @@ export default function App() {
         .pw-btn { width:100%; background:#C9A84C; color:#0A0A0A; border:none; font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.05em; padding:0.65rem; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
         .pw-btn:hover { opacity:0.85; }
         .pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#EF4444; margin-top:0.4rem; }
+        .contact { margin-top:3rem; text-align:center; }
+        .contact-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#444; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1rem; }
+        .wa-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+        .wa-btn { display:flex; align-items:center; gap:0.5rem; background:#111; border:1px solid #222; border-radius:2px; padding:0.65rem 1.25rem; text-decoration:none; transition:all 0.2s; }
+        .wa-btn:hover { border-color:#25D366; background:#0D1A10; }
+        .wa-icon { font-size:1rem; }
+        .wa-info { text-align:left; }
+        .wa-region { font-family:'DM Mono',monospace; font-size:0.6rem; color:#555; letter-spacing:0.1em; text-transform:uppercase; }
+        .wa-number { font-family:'DM Mono',monospace; font-size:0.78rem; color:#F5F0E8; }
       `}</style>
       <div className="home">
         <div className="logo">SPARES<span>ANYWHERE</span></div>
@@ -127,6 +136,25 @@ export default function App() {
             {pwError && <div className="pw-error">Incorrect password</div>}
           </div>
           )}
+        </div>
+        <div className="contact">
+          <div className="contact-lbl">Contact Us on WhatsApp</div>
+          <div className="wa-btns">
+            <a className="wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
+              <span className="wa-icon">💬</span>
+              <div className="wa-info">
+                <div className="wa-region">UK</div>
+                <div className="wa-number">+44 7494 806066</div>
+              </div>
+            </a>
+            <a className="wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
+              <span className="wa-icon">💬</span>
+              <div className="wa-info">
+                <div className="wa-region">Nigeria</div>
+                <div className="wa-number">+234 9168 340653</div>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
     </>
