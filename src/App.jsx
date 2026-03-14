@@ -218,6 +218,13 @@ export default function App() {
                 <div className="wa-number">+234 9168 340653</div>
               </div>
             </a>
+            <a className="wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
+              <span className="wa-icon">💬</span>
+              <div className="wa-info">
+                <div className="wa-region">Dubai</div>
+                <div className="wa-number">+971 557 997247</div>
+              </div>
+            </a>
           </div>
         </div>
       </div>
