@@ -363,6 +363,7 @@ function AdminDashboard({ onBack }) {
   const [quoteInput, setQuoteInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [srcQuery, setSrcQuery] = useState("");
 
   const fetch = useCallback(async () => {
     const o = await loadOrders(); setOrders(o.map(mapOrder)); setLoading(false);
@@ -472,6 +473,16 @@ function AdminDashboard({ onBack }) {
         .xlbtn:hover { color:#10B981; border-color:#10B981; }
         .delbtn { width:100%; background:none; border:1px solid #3A1A1A; color:#EF4444; font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.05em; padding:0.65rem; cursor:pointer; border-radius:2px; transition:all 0.2s; margin-top:0.5rem; }
         .delbtn:hover { background:#1A0505; border-color:#EF4444; }
+        .src-box { background:#0A0A0A; border:1px solid #1A1A1A; border-radius:2px; padding:1.25rem; margin-bottom:1.5rem; }
+        .src-row { display:flex; gap:0.5rem; margin-bottom:0.75rem; }
+        .src-input { flex:1; background:#111; border:1px solid #222; color:#F5F0E8; font-family:'DM Mono',monospace; font-size:0.82rem; padding:0.55rem 0.9rem; border-radius:2px; outline:none; }
+        .src-input:focus { border-color:#C9A84C; }
+        .src-btns { display:flex; gap:0.5rem; flex-wrap:wrap; }
+        .src-btn { display:flex; align-items:center; gap:0.4rem; font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.06em; text-transform:uppercase; padding:0.45rem 0.9rem; border-radius:2px; border:1px solid #222; cursor:pointer; background:none; color:#888; transition:all 0.15s; text-decoration:none; }
+        .src-btn:hover { color:#F5F0E8; border-color:#555; background:#111; }
+        .src-btn.ebay-uk:hover { border-color:#E53238; color:#E53238; }
+        .src-btn.ebay-gl:hover { border-color:#0064D2; color:#0064D2; }
+        .src-btn.google:hover { border-color:#34A853; color:#34A853; }
         .cquote { font-family:'DM Mono',monospace; font-size:0.78rem; color:#10B981; background:#0A1A0F; border:1px solid #1A3A1F; padding:0.6rem 1rem; border-radius:2px; margin-bottom:1.5rem; }
         .notes { background:#0A0A0A; border:1px solid #1A1A1A; border-radius:2px; padding:0.75rem 1rem; font-family:'DM Mono',monospace; font-size:0.78rem; color:#888; line-height:1.6; margin-bottom:1.5rem; }
         .empty { text-align:center; padding:4rem 1rem; font-family:'DM Mono',monospace; font-size:0.75rem; color:#444; }
@@ -504,7 +515,7 @@ function AdminDashboard({ onBack }) {
             {loading ? <div className="empty">Loading orders…</div> : filtered.length===0 ? (
               <div className="empty">No orders here yet.</div>
             ) : filtered.map(o=>(
-              <div key={o.id} className={`orow ${sel?.id===o.id?"sel":""}`} onClick={()=>{setSel(o);setQuoteInput(o.quote||"");}}>
+              <div key={o.id} className={`orow ${sel?.id===o.id?"sel":""}`} onClick={()=>{setSel(o);setQuoteInput(o.quote||"");setSrcQuery(`${o.part} ${o.car} ${o.year||""}`.trim());}}>
                 <div>
                   <div className="orow-id">{o.id}</div>
                   <div className="orow-part">{o.part}</div>
@@ -543,6 +554,31 @@ function AdminDashboard({ onBack }) {
                   <button className="qbtn" onClick={()=>updateOrder(sel.id,{quote:quoteInput,status:"quoted"})} disabled={saving}>
                     {saving?"Saving…":"Save Quote"}
                   </button>
+                </div>
+                <div className="dlbl">Source Parts</div>
+                <div className="src-box">
+                  <div className="src-row">
+                    <input
+                      className="src-input"
+                      value={srcQuery}
+                      onChange={e => setSrcQuery(e.target.value)}
+                      placeholder="e.g. Front Brake Caliper BMW 5 Series 2019"
+                    />
+                  </div>
+                  <div className="src-btns">
+                    <a className="src-btn ebay-uk" target="_blank" rel="noopener noreferrer"
+                      href={`https://www.ebay.co.uk/sch/i.html?_nkw=${encodeURIComponent(srcQuery)}&_sacat=6000`}>
+                      🛒 eBay UK
+                    </a>
+                    <a className="src-btn ebay-gl" target="_blank" rel="noopener noreferrer"
+                      href={`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(srcQuery)}&_sacat=6028`}>
+                      🌍 eBay Global
+                    </a>
+                    <a className="src-btn google" target="_blank" rel="noopener noreferrer"
+                      href={`https://www.google.com/search?q=${encodeURIComponent(srcQuery)}&tbm=shop`}>
+                      🔍 Google Shopping
+                    </a>
+                  </div>
                 </div>
                 <button className="delbtn" onClick={()=>handleDelete(sel.id)} disabled={deleting}>
                   {deleting ? "Deleting…" : "🗑 Delete Order"}
