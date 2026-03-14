@@ -81,6 +81,27 @@ export default function App() {
   const [pwError, setPwError] = useState(false);
   const ADMIN_PASSWORD = "munzir2025";
 
+  useEffect(() => {
+    document.title = "SpareAnywhere | Car Parts Sourced from London, Dubai & Lagos";
+    const setName = (name, content) => {
+      let el = document.querySelector(`meta[name="${name}"]`);
+      if (!el) { el = document.createElement("meta"); el.setAttribute("name", name); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+    const setProp = (prop, content) => {
+      let el = document.querySelector(`meta[property="${prop}"]`);
+      if (!el) { el = document.createElement("meta"); el.setAttribute("property", prop); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+    setName("description", "SpareAnywhere sources OEM and aftermarket car parts from London, Dubai and Lagos. Submit your part request and get a quote within 48 hours. Fast, reliable automotive parts worldwide.");
+    setName("keywords", "car parts, auto parts, spare parts, automotive parts, OEM parts, aftermarket parts, car parts London, car parts Dubai, car parts Lagos, car parts Nigeria, vehicle parts UK, spare parts sourcing");
+    setName("robots", "index, follow");
+    setProp("og:title", "SpareAnywhere | Car Parts from London, Dubai & Lagos");
+    setProp("og:description", "Source any car part worldwide. OEM & aftermarket. Fast turnaround.");
+    setProp("og:url", "https://sparesanywhere.com");
+    setProp("og:type", "website");
+  }, []);
+
   // Admin card only appears when URL contains ?admin (e.g. yoursite.com/?admin)
   // Bookmark that URL on your laptop — regular visitors will never see the admin section
   const isAdminDevice = new URLSearchParams(window.location.search).has("admin");
