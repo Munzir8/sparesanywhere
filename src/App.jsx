@@ -112,7 +112,7 @@ export default function App() {
         .logo > span:first-of-type { color:#C9A84C; animation:shimmer 4s ease-in-out infinite; display:inline-block; }
         .logo-bar { width:2rem; height:1px; background:#C9A84C; margin:0.6rem auto; opacity:0.5; }
         .sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.75rem; }
-        .tagline { font-family:'DM Mono',monospace; font-size:0.72rem; color:#444; letter-spacing:0.05em; margin-bottom:1.5rem; }
+        .tagline { font-family:'DM Mono',monospace; font-size:0.72rem; color:#C0392B; letter-spacing:0.05em; margin-bottom:1.5rem; }
         .stats { display:flex; gap:2rem; justify-content:center; margin-bottom:3.5rem; animation:fadeUp 0.6s 0.15s ease both; opacity:0; animation-fill-mode:forwards; flex-wrap:wrap; }
         .stat { text-align:center; }
         .stat-num { font-size:1.1rem; font-weight:800; color:#C9A84C; letter-spacing:-0.02em; }
@@ -171,7 +171,8 @@ export default function App() {
             </div>
           </div>
           <div className="logo-bar"></div>
-          <div className="sub">Automotive Parts · London · Dubai · Lagos</div>
+          <div className="sub">Automotive Parts</div>
+          <div className="sub" style={{marginBottom:"0.75rem"}}>London · Dubai · Lagos</div>
           <div className="tagline">No part too rare. No market too far.</div>
         </div>
         <div className="stats">
