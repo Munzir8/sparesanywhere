@@ -72,7 +72,7 @@ const STATUS = {
 };
 
 const FONT = `@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');`;
-const BASE = `*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } body { background: #0A0A0A; }`;
+const BASE = `*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } html, body, #root { width: 100%; min-height: 100vh; } body { background: #0A0A0A; }`;
 
 export default function App() {
   const [view, setView] = useState("home");
@@ -106,7 +106,7 @@ export default function App() {
         .car-svg { animation:carBob 0.8s ease-in-out infinite; overflow:visible; }
         .wheel-f { animation:wheelSpin 1.5s linear infinite; transform-origin:9px 18px; }
         .wheel-r { animation:wheelSpin 1.5s linear infinite; transform-origin:32px 18px; }
-        .home { min-height:100vh; background:#0A0A0A; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Syne',sans-serif; padding:2rem; }
+        .home { width:100%; min-height:100vh; background:#0A0A0A; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Syne',sans-serif; padding:2rem; }
         .brand { text-align:center; animation:fadeUp 0.6s ease both; }
         .logo { font-size:clamp(1.6rem,5vw,3rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
         .logo > span:first-of-type { color:#C9A84C; animation:shimmer 4s ease-in-out infinite; display:inline-block; }
