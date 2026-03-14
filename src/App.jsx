@@ -98,11 +98,11 @@ export default function App() {
       <style>{FONT}{BASE}{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes shimmer { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
-        @keyframes carDrive { 0%{transform:translateX(-150px) scaleX(1);} 47%{transform:translateX(150px) scaleX(1);} 50%{transform:translateX(150px) scaleX(-1);} 97%{transform:translateX(-150px) scaleX(-1);} 100%{transform:translateX(-150px) scaleX(1);} }
+        @keyframes carDrive { 0%{left:0;transform:scaleX(1);} 47%{left:calc(100% - 44px);transform:scaleX(1);} 50%{left:calc(100% - 44px);transform:scaleX(-1);} 97%{left:0;transform:scaleX(-1);} 100%{left:0;transform:scaleX(1);} }
         @keyframes carBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-1px);} }
         @keyframes wheelSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-        .walker-wrap { position:relative; height:28px; margin:0.3rem 0 0.1rem; overflow:visible; }
-        .walker { position:absolute; left:50%; top:0; animation:carDrive 10s linear infinite; }
+        .walker-wrap { position:relative; height:28px; margin:0.3rem auto 0.1rem; overflow:visible; width:min(400px, 90vw); }
+        .walker { position:absolute; top:0; left:0; animation:carDrive 10s linear infinite; }
         .car-svg { animation:carBob 0.8s ease-in-out infinite; overflow:visible; }
         .wheel-f { animation:wheelSpin 1.5s linear infinite; transform-origin:9px 18px; }
         .wheel-r { animation:wheelSpin 1.5s linear infinite; transform-origin:32px 18px; }
