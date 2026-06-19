@@ -121,6 +121,16 @@ export default function App() {
 
   const isAdminDevice = new URLSearchParams(window.location.search).has("admin");
 
+  // Scroll-reveal observer for the cinematic homepage
+  useEffect(() => {
+    if (view !== "home") return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("revealed"); });
+    }, { threshold: 0.15 });
+    document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, [view]);
+
   function enterAdmin() {
     if (adminPw === ADMIN_PASSWORD) { setAdminAuth(true); setView("admin"); setPwError(false); }
     else setPwError(true);
@@ -140,29 +150,63 @@ export default function App() {
         @keyframes carDrive { 0%{left:0;transform:scaleX(1);} 47%{left:calc(100% - 44px);transform:scaleX(1);} 50%{left:calc(100% - 44px);transform:scaleX(-1);} 97%{left:0;transform:scaleX(-1);} 100%{left:0;transform:scaleX(1);} }
         @keyframes carBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-1px);} }
         @keyframes wheelSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+        @keyframes floatSlow { 0%,100%{transform:translateY(0px);} 50%{transform:translateY(-14px);} }
+        @keyframes glowPulse { 0%,100%{opacity:0.15;} 50%{opacity:0.35;} }
+        html { scroll-behavior:smooth; }
         .walker-wrap { position:relative; height:28px; margin:0.3rem auto 0.1rem; overflow:visible; width:min(400px, 90vw); }
         .walker { position:absolute; top:0; left:0; animation:carDrive 10s linear infinite; }
         .car-svg { animation:carBob 0.8s ease-in-out infinite; overflow:visible; }
         .wheel-f { animation:wheelSpin 1.5s linear infinite; transform-origin:9px 18px; }
         .wheel-r { animation:wheelSpin 1.5s linear infinite; transform-origin:32px 18px; }
-        .home { width:100%; min-height:100vh; background:#0A0A0A; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Syne',sans-serif; padding:2rem; }
-        .brand { text-align:center; animation:fadeUp 0.6s ease both; }
-        .logo { font-size:clamp(1.6rem,5vw,3rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
+
+        .reveal { opacity:0; transform:translateY(40px); transition:opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1); }
+        .reveal.revealed { opacity:1; transform:translateY(0); }
+        .reveal.r-left { transform:translateX(-50px); }
+        .reveal.r-left.revealed { transform:translateX(0); }
+        .reveal.r-right { transform:translateX(50px); }
+        .reveal.r-right.revealed { transform:translateX(0); }
+        .reveal.r-scale { transform:scale(0.9); }
+        .reveal.r-scale.revealed { transform:scale(1); }
+        .stagger > * { transition-delay:0ms; }
+        .stagger.revealed > *:nth-child(1){transition-delay:0ms;}
+        .stagger.revealed > *:nth-child(2){transition-delay:90ms;}
+        .stagger.revealed > *:nth-child(3){transition-delay:180ms;}
+        .stagger.revealed > *:nth-child(4){transition-delay:270ms;}
+
+        .home-wrap { width:100%; background:#0A0A0A; font-family:'Syne',sans-serif; overflow-x:hidden; }
+
+        .glow { position:absolute; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(201,168,76,0.5) 0%, transparent 70%); filter:blur(40px); pointer-events:none; animation:glowPulse 6s ease-in-out infinite; }
+
+        .hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem; }
+        .brand { text-align:center; animation:fadeUp 0.6s ease both; position:relative; z-index:1; }
+        .logo { font-size:clamp(1.8rem,6vw,3.5rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
         .logo > span:first-of-type { color:#C9A84C; animation:shimmer 4s ease-in-out infinite; display:inline-block; }
         .logo-bar { width:2rem; height:1px; background:#C9A84C; margin:0.6rem auto; opacity:0.5; }
         .sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.75rem; }
         .tagline { font-family:'DM Mono',monospace; font-size:0.72rem; color:#C0392B; letter-spacing:0.05em; margin-bottom:1.5rem; }
-        .stats { display:flex; gap:2rem; justify-content:center; margin-bottom:3.5rem; animation:fadeUp 0.6s 0.15s ease both; opacity:0; animation-fill-mode:forwards; flex-wrap:wrap; }
+        .scroll-cue { position:absolute; bottom:2.5rem; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:0.5rem; animation:floatSlow 2.4s ease-in-out infinite; opacity:0.5; z-index:1; }
+        .scroll-cue-lbl { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:#666; }
+        .scroll-cue-line { width:1px; height:28px; background:linear-gradient(to bottom, #C9A84C, transparent); }
+
+        .section { padding:6rem 2rem; position:relative; }
+        .section-inner { max-width:900px; margin:0 auto; }
+
+        .stats { display:flex; gap:2rem; justify-content:center; flex-wrap:wrap; }
         .stat { text-align:center; }
-        .stat-num { font-size:1.1rem; font-weight:800; color:#C9A84C; letter-spacing:-0.02em; }
-        .stat-lbl { font-family:'DM Mono',monospace; font-size:0.6rem; color:#444; letter-spacing:0.1em; text-transform:uppercase; margin-top:0.15rem; }
+        .stat-num { font-size:2.2rem; font-weight:800; color:#C9A84C; letter-spacing:-0.02em; }
+        .stat-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#555; letter-spacing:0.1em; text-transform:uppercase; margin-top:0.3rem; }
         .stat-div { width:1px; background:#1E1E1E; align-self:stretch; }
-        .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1.5rem; max-width:900px; width:100%; animation:fadeUp 0.6s 0.3s ease both; opacity:0; animation-fill-mode:forwards; }
+
+        .section-eyebrow { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase; color:#C9A84C; text-align:center; margin-bottom:1rem; }
+        .section-title { font-family:'Playfair Display',serif; font-size:clamp(1.6rem,4vw,2.4rem); font-weight:500; color:#F5F0E8; text-align:center; margin-bottom:3rem; letter-spacing:-0.5px; }
+
+        .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1.5rem; width:100%; }
         @media(max-width:520px){.cards{grid-template-columns:1fr;}}
-        .card { border:1px solid #222; border-radius:2px; padding:2.5rem 2rem; background:#111; transition:all 0.2s; }
+        .card { border:1px solid #222; border-radius:2px; padding:2.5rem 2rem; background:#111; transition:border-color 0.3s, background 0.3s, transform 0.3s; }
         .card.clickable { cursor:pointer; }
-        .card.clickable:hover { border-color:#C9A84C; background:#141414; transform:translateY(-2px); }
-        .card-icon { font-size:2rem; margin-bottom:1rem; }
+        .card.clickable:hover { border-color:#C9A84C; background:#141414; transform:translateY(-4px); }
+        .card-icon { font-size:2rem; margin-bottom:1rem; transition:transform 0.3s; }
+        .card.clickable:hover .card-icon { transform:scale(1.15) rotate(-4deg); }
         .card-title { font-size:1.25rem; font-weight:700; color:#F5F0E8; margin-bottom:0.5rem; }
         .card-desc { font-family:'DM Mono',monospace; font-size:0.72rem; color:#666; line-height:1.6; margin-bottom:1.25rem; }
         .pw-input { width:100%; background:#0A0A0A; border:1px solid #333; color:#F5F0E8; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.6rem 1rem; border-radius:2px; outline:none; margin-bottom:0.5rem; }
@@ -170,98 +214,145 @@ export default function App() {
         .pw-btn { width:100%; background:#C9A84C; color:#0A0A0A; border:none; font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.05em; padding:0.65rem; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
         .pw-btn:hover { opacity:0.85; }
         .pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#EF4444; margin-top:0.4rem; }
-        .contact { margin-top:3rem; text-align:center; animation:fadeUp 0.6s 0.45s ease both; opacity:0; animation-fill-mode:forwards; }
+
+        .route-row { display:flex; align-items:center; justify-content:center; gap:1.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+        .route-city { font-family:'Playfair Display',serif; font-size:1.4rem; color:#F5F0E8; font-weight:500; }
+        .route-arrow { color:#C9A84C; font-size:1.2rem; }
+        .route-sub { text-align:center; font-family:'DM Mono',monospace; font-size:0.72rem; color:#555; letter-spacing:0.05em; }
+
+        .contact { text-align:center; padding-bottom:5rem; }
         .contact-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#444; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1rem; }
         .wa-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
         .wa-btn { display:flex; align-items:center; gap:0.5rem; background:#111; border:1px solid #222; border-radius:2px; padding:0.65rem 1.25rem; text-decoration:none; transition:all 0.2s; }
-        .wa-btn:hover { border-color:#25D366; background:#0D1A10; }
+        .wa-btn:hover { border-color:#25D366; background:#0D1A10; transform:translateY(-2px); }
         .wa-icon { font-size:1rem; }
         .wa-info { text-align:left; }
         .wa-region { font-family:'DM Mono',monospace; font-size:0.6rem; color:#555; letter-spacing:0.1em; text-transform:uppercase; }
         .wa-number { font-family:'DM Mono',monospace; font-size:0.78rem; color:#F5F0E8; }
       `}</style>
-      <div className="home">
-        <div className="brand">
-          <div className="logo">SPARES<span>ANYWHERE</span></div>
-          <div className="walker-wrap">
-            <div className="walker">
-              <svg className="car-svg" viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="2,16 4,9 11,9 15,4 29,4 33,9 40,9 42,16" />
-                <line x1="2" y1="16" x2="5" y2="16" />
-                <line x1="13" y1="16" x2="28" y2="16" />
-                <line x1="36" y1="16" x2="42" y2="16" />
-                <g className="wheel-f">
-                  <circle cx="9" cy="18" r="4" />
-                  <line x1="9" y1="14" x2="9" y2="22" />
-                  <line x1="5" y1="18" x2="13" y2="18" />
-                </g>
-                <g className="wheel-r">
-                  <circle cx="32" cy="18" r="4" />
-                  <line x1="32" y1="14" x2="32" y2="22" />
-                  <line x1="28" y1="18" x2="36" y2="18" />
-                </g>
-                <circle cx="41" cy="12" r="1" fill="#C9A84C" />
-              </svg>
+      <div className="home-wrap">
+
+        {/* HERO */}
+        <div className="hero">
+          <div className="glow" style={{top:"10%", left:"15%"}}></div>
+          <div className="glow" style={{bottom:"5%", right:"10%", animationDelay:"2s"}}></div>
+          <div className="brand">
+            <div className="logo">SPARES<span>ANYWHERE</span></div>
+            <div className="walker-wrap">
+              <div className="walker">
+                <svg className="car-svg" viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="2,16 4,9 11,9 15,4 29,4 33,9 40,9 42,16" />
+                  <line x1="2" y1="16" x2="5" y2="16" />
+                  <line x1="13" y1="16" x2="28" y2="16" />
+                  <line x1="36" y1="16" x2="42" y2="16" />
+                  <g className="wheel-f">
+                    <circle cx="9" cy="18" r="4" />
+                    <line x1="9" y1="14" x2="9" y2="22" />
+                    <line x1="5" y1="18" x2="13" y2="18" />
+                  </g>
+                  <g className="wheel-r">
+                    <circle cx="32" cy="18" r="4" />
+                    <line x1="32" y1="14" x2="32" y2="22" />
+                    <line x1="28" y1="18" x2="36" y2="18" />
+                  </g>
+                  <circle cx="41" cy="12" r="1" fill="#C9A84C" />
+                </svg>
+              </div>
+            </div>
+            <div className="logo-bar"></div>
+            <div className="sub">Automotive Parts</div>
+            <div className="sub" style={{marginBottom:"0.75rem"}}>London · Dubai · Lagos</div>
+            <div className="tagline">No part too rare. No market too far.</div>
+          </div>
+          <div className="scroll-cue">
+            <div className="scroll-cue-lbl">Scroll</div>
+            <div className="scroll-cue-line"></div>
+          </div>
+        </div>
+
+        {/* STATS */}
+        <div className="section">
+          <div className="section-inner reveal stagger stats">
+            <div className="stat"><div className="stat-num">3</div><div className="stat-lbl">Countries</div></div>
+            <div className="stat-div"></div>
+            <div className="stat"><div className="stat-num">48h</div><div className="stat-lbl">Avg. Turnaround</div></div>
+            <div className="stat-div"></div>
+            <div className="stat"><div className="stat-num">OEM</div><div className="stat-lbl">& Aftermarket</div></div>
+          </div>
+        </div>
+
+        {/* ROUTE */}
+        <div className="section" style={{paddingTop:0}}>
+          <div className="section-inner reveal r-scale">
+            <div className="route-row">
+              <span className="route-city">London</span>
+              <span className="route-arrow">→</span>
+              <span className="route-city">Dubai</span>
+              <span className="route-arrow">→</span>
+              <span className="route-city">Lagos</span>
+            </div>
+            <div className="route-sub">Three markets. One supply chain. Every rare part has a route to find it.</div>
+          </div>
+        </div>
+
+        {/* SERVICES */}
+        <div className="section">
+          <div className="section-inner">
+            <div className="section-eyebrow reveal">What we do</div>
+            <div className="section-title reveal">Three ways in.</div>
+            <div className="cards reveal stagger">
+              <div className="card clickable" onClick={() => setView("garage")}>
+                <div className="card-icon">🔧</div>
+                <div className="card-title">Garage Portal</div>
+                <div className="card-desc">Submit part requests, upload VIN plates or reference photos, and track order status.</div>
+              </div>
+              <div className="card clickable" onClick={() => setView("stories")}>
+                <div className="card-icon">📖</div>
+                <div className="card-title">Sourcing Stories</div>
+                <div className="card-desc">Real jobs. Rare parts. How we found them.</div>
+              </div>
+              <div className="card clickable" onClick={() => setView("track")}>
+                <div className="card-icon">📍</div>
+                <div className="card-title">Track Your Order</div>
+                <div className="card-desc">Enter your Order ID to see live status.</div>
+              </div>
+              {isAdminDevice && (
+              <div className="card">
+                <div className="card-icon">📊</div>
+                <div className="card-title">Admin Dashboard</div>
+                <div className="card-desc">Manage orders, quotes, and sourcing stories.</div>
+                <input className="pw-input" type="password" placeholder="Enter password…" value={adminPw}
+                  onChange={e => { setAdminPw(e.target.value); setPwError(false); }}
+                  onKeyDown={e => e.key === "Enter" && enterAdmin()} />
+                <button className="pw-btn" onClick={enterAdmin}>ENTER →</button>
+                {pwError && <div className="pw-error">Incorrect password</div>}
+              </div>
+              )}
             </div>
           </div>
-          <div className="logo-bar"></div>
-          <div className="sub">Automotive Parts</div>
-          <div className="sub" style={{marginBottom:"0.75rem"}}>London · Dubai · Lagos</div>
-          <div className="tagline">No part too rare. No market too far.</div>
         </div>
-        <div className="stats">
-          <div className="stat"><div className="stat-num">3</div><div className="stat-lbl">Countries</div></div>
-          <div className="stat-div"></div>
-          <div className="stat"><div className="stat-num">48h</div><div className="stat-lbl">Avg. Turnaround</div></div>
-          <div className="stat-div"></div>
-          <div className="stat"><div className="stat-num">OEM</div><div className="stat-lbl">& Aftermarket</div></div>
-        </div>
-        <div className="cards">
-          <div className="card clickable" onClick={() => setView("garage")}>
-            <div className="card-icon">🔧</div>
-            <div className="card-title">Garage Portal</div>
-            <div className="card-desc">Submit part requests, upload VIN plates or reference photos, and track order status.</div>
-          </div>
-          <div className="card clickable" onClick={() => setView("stories")}>
-            <div className="card-icon">📖</div>
-            <div className="card-title">Sourcing Stories</div>
-            <div className="card-desc">Real jobs. Rare parts. How we found them.</div>
-          </div>
-          <div className="card clickable" onClick={() => setView("track")}>
-            <div className="card-icon">📍</div>
-            <div className="card-title">Track Your Order</div>
-            <div className="card-desc">Enter your Order ID to see live status.</div>
-          </div>
-          {isAdminDevice && (
-          <div className="card">
-            <div className="card-icon">📊</div>
-            <div className="card-title">Admin Dashboard</div>
-            <div className="card-desc">Manage orders, quotes, and sourcing stories.</div>
-            <input className="pw-input" type="password" placeholder="Enter password…" value={adminPw}
-              onChange={e => { setAdminPw(e.target.value); setPwError(false); }}
-              onKeyDown={e => e.key === "Enter" && enterAdmin()} />
-            <button className="pw-btn" onClick={enterAdmin}>ENTER →</button>
-            {pwError && <div className="pw-error">Incorrect password</div>}
-          </div>
-          )}
-        </div>
-        <div className="contact">
-          <div className="contact-lbl">Contact Us on WhatsApp</div>
-          <div className="wa-btns">
-            <a className="wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
-              <span className="wa-icon">💬</span>
-              <div className="wa-info"><div className="wa-region">London</div><div className="wa-number">+44 7494 806066</div></div>
-            </a>
-            <a className="wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
-              <span className="wa-icon">💬</span>
-              <div className="wa-info"><div className="wa-region">Lagos</div><div className="wa-number">+234 9168 340653</div></div>
-            </a>
-            <a className="wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
-              <span className="wa-icon">💬</span>
-              <div className="wa-info"><div className="wa-region">Dubai</div><div className="wa-number">+971 557 997247</div></div>
-            </a>
+
+        {/* CONTACT */}
+        <div className="section contact">
+          <div className="reveal">
+            <div className="contact-lbl">Contact Us on WhatsApp</div>
+            <div className="wa-btns">
+              <a className="wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
+                <span className="wa-icon">💬</span>
+                <div className="wa-info"><div className="wa-region">London</div><div className="wa-number">+44 7494 806066</div></div>
+              </a>
+              <a className="wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
+                <span className="wa-icon">💬</span>
+                <div className="wa-info"><div className="wa-region">Lagos</div><div className="wa-number">+234 9168 340653</div></div>
+              </a>
+              <a className="wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
+                <span className="wa-icon">💬</span>
+                <div className="wa-info"><div className="wa-region">Dubai</div><div className="wa-number">+971 557 997247</div></div>
+              </a>
+            </div>
           </div>
         </div>
+
       </div>
     </>
   );
