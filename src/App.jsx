@@ -140,16 +140,17 @@ export default function App() {
   const [stars, setStars] = useState({ near: "", mid: "", far: "" });
   useEffect(() => {
     if (view !== "home") return;
-    function genStars(count, sizePx) {
+    function genStars(count, color) {
+      const w = Math.max(window.innerWidth, 360);
       let shadows = [];
       for (let i = 0; i < count; i++) {
-        const x = Math.round(Math.random() * 2000);
-        const y = Math.round(Math.random() * 3000);
-        shadows.push(`${x}px ${y}px 0 #fff`);
+        const x = Math.round(Math.random() * w);
+        const y = Math.round(Math.random() * 3200);
+        shadows.push(`${x}px ${y}px 0 ${color}`);
       }
       return shadows.join(",");
     }
-    setStars({ near: genStars(60, 2), mid: genStars(90, 1.5), far: genStars(140, 1) });
+    setStars({ near: genStars(110, "#FFFFFF"), mid: genStars(140, "#E8DCC0"), far: genStars(180, "#C9A84C") });
   }, [view]);
 
   // Parallax scroll effect for the hero
@@ -218,17 +219,18 @@ export default function App() {
         @keyframes marqueeScroll { from{transform:translateX(0);} to{transform:translateX(-50%);} }
         @keyframes gridDrift { from{background-position:0 0;} to{background-position:0 60px;} }
         @keyframes twinkle { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
-        @keyframes shootAcross { 0%{transform:translate(0,0) rotate(-35deg); opacity:0;} 5%{opacity:1;} 25%{opacity:0;} 100%{transform:translate(420px,420px) rotate(-35deg); opacity:0;} }
+        @keyframes shootAcross { 0%{transform:translate(0,0) rotate(-35deg); opacity:0;} 5%{opacity:1;} 22%{opacity:0;} 100%{transform:translate(600px,500px) rotate(-35deg); opacity:0;} }
 
-        .stars-far, .stars-mid, .stars-near { position:absolute; top:0; left:0; width:2px; height:2px; border-radius:50%; background:transparent; pointer-events:none; height:3000px; }
-        .stars-far { animation:twinkle 6s ease-in-out infinite; opacity:0.5; }
-        .stars-mid { animation:twinkle 4.5s ease-in-out infinite; opacity:0.7; animation-delay:0.5s; }
-        .stars-near { animation:twinkle 3s ease-in-out infinite; opacity:0.9; animation-delay:1s; }
+        .stars-far, .stars-mid, .stars-near { position:absolute; top:0; left:0; width:3px; height:3000px; border-radius:50%; background:transparent; pointer-events:none; }
+        .stars-far { animation:twinkle 6s ease-in-out infinite; opacity:0.6; width:2px; }
+        .stars-mid { animation:twinkle 4.5s ease-in-out infinite; opacity:0.85; animation-delay:0.5s; width:3px; }
+        .stars-near { animation:twinkle 3s ease-in-out infinite; opacity:1; animation-delay:1s; width:4px; }
 
-        .shooting-star { position:absolute; top:0; left:0; width:2px; height:2px; background:#fff; border-radius:50%; box-shadow:0 0 6px 1px rgba(255,255,255,0.8); pointer-events:none; }
-        .shooting-star::before { content:''; position:absolute; top:0; left:0; width:60px; height:1px; background:linear-gradient(to left, rgba(255,255,255,0.8), transparent); transform:translateX(-58px); }
-        .shooting-star.s1 { top:8%; left:15%; animation:shootAcross 7s linear infinite; animation-delay:1s; }
-        .shooting-star.s2 { top:22%; left:55%; animation:shootAcross 9s linear infinite; animation-delay:4s; }
+        .shooting-star { position:absolute; top:0; left:0; width:3px; height:3px; background:#fff; border-radius:50%; box-shadow:0 0 12px 3px rgba(255,255,255,1); pointer-events:none; z-index:2; }
+        .shooting-star::before { content:''; position:absolute; top:1px; left:0; width:110px; height:2px; background:linear-gradient(to left, rgba(255,255,255,0.9), transparent); transform:translateX(-108px); }
+        .shooting-star.s1 { top:8%; left:10%; animation:shootAcross 6s linear infinite; animation-delay:0.5s; }
+        .shooting-star.s2 { top:18%; left:50%; animation:shootAcross 8s linear infinite; animation-delay:3s; }
+        .shooting-star.s3 { top:35%; left:75%; animation:shootAcross 7s linear infinite; animation-delay:5.5s; }
         html { scroll-behavior:smooth; }
         .walker-wrap { position:relative; height:28px; margin:0.3rem auto 0.1rem; overflow:visible; width:min(400px, 90vw); }
         .walker { position:absolute; top:0; left:0; animation:carDrive 10s linear infinite; }
@@ -251,7 +253,7 @@ export default function App() {
         .stagger.revealed > *:nth-child(4){transition-delay:270ms;}
 
         .home-wrap { width:100%; background:#0A0A0A; font-family:'Syne',sans-serif; overflow-x:hidden; position:relative; }
-        .home-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:100%; background:radial-gradient(ellipse 80% 50% at 50% 0%, rgba(80,40,120,0.12), transparent 60%); pointer-events:none; z-index:0; }
+        .home-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:1400px; background:radial-gradient(ellipse 90% 60% at 50% 0%, rgba(130,70,200,0.28), transparent 65%); pointer-events:none; z-index:0; }
         .stars-far, .stars-mid, .stars-near { z-index:0; }
 
         .glow { position:absolute; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(201,168,76,0.5) 0%, transparent 70%); filter:blur(40px); pointer-events:none; animation:glowPulse 6s ease-in-out infinite; }
@@ -322,6 +324,7 @@ export default function App() {
         <div className="stars-near" style={{boxShadow: stars.near}}></div>
         <div className="shooting-star s1"></div>
         <div className="shooting-star s2"></div>
+        <div className="shooting-star s3"></div>
 
         {/* HERO */}
         <div className="hero">
