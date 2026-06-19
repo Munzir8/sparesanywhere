@@ -125,11 +125,52 @@ export default function App() {
   useEffect(() => {
     if (view !== "home") return;
     const obs = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("revealed"); });
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add("revealed");
+          if (e.target.classList.contains("count-trigger")) startCountUp();
+        }
+      });
     }, { threshold: 0.15 });
     document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
     return () => obs.disconnect();
   }, [view]);
+
+  // Parallax scroll effect for the hero
+  useEffect(() => {
+    if (view !== "home") return;
+    function onScroll() {
+      const y = window.scrollY;
+      const heroEl = document.querySelector(".hero-bg-layer");
+      const glow1 = document.querySelector(".glow-1");
+      const glow2 = document.querySelector(".glow-2");
+      const brandEl = document.querySelector(".brand");
+      if (heroEl) heroEl.style.transform = `translateY(${y * 0.35}px)`;
+      if (glow1) glow1.style.transform = `translate(${y * 0.15}px, ${y * 0.25}px)`;
+      if (glow2) glow2.style.transform = `translate(${-y * 0.12}px, ${y * 0.2}px)`;
+      if (brandEl) { brandEl.style.transform = `translateY(${y * 0.2}px)`; brandEl.style.opacity = Math.max(1 - y / 500, 0); }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [view]);
+
+  const [countedUp, setCountedUp] = useState(false);
+  const [countries, setCountries] = useState(0);
+  const [hours, setHours] = useState(0);
+  function startCountUp() {
+    if (countedUp) return;
+    setCountedUp(true);
+    const dur = 900;
+    const start = performance.now();
+    function tick(now) {
+      const t = Math.min((now - start) / dur, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      setCountries(Math.round(ease * 3));
+      setHours(Math.round(ease * 48));
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
 
   function enterAdmin() {
     if (adminPw === ADMIN_PASSWORD) { setAdminAuth(true); setView("admin"); setPwError(false); }
@@ -152,6 +193,8 @@ export default function App() {
         @keyframes wheelSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
         @keyframes floatSlow { 0%,100%{transform:translateY(0px);} 50%{transform:translateY(-14px);} }
         @keyframes glowPulse { 0%,100%{opacity:0.15;} 50%{opacity:0.35;} }
+        @keyframes marqueeScroll { from{transform:translateX(0);} to{transform:translateX(-50%);} }
+        @keyframes gridDrift { from{background-position:0 0;} to{background-position:0 60px;} }
         html { scroll-behavior:smooth; }
         .walker-wrap { position:relative; height:28px; margin:0.3rem auto 0.1rem; overflow:visible; width:min(400px, 90vw); }
         .walker { position:absolute; top:0; left:0; animation:carDrive 10s linear infinite; }
@@ -176,6 +219,13 @@ export default function App() {
         .home-wrap { width:100%; background:#0A0A0A; font-family:'Syne',sans-serif; overflow-x:hidden; }
 
         .glow { position:absolute; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(201,168,76,0.5) 0%, transparent 70%); filter:blur(40px); pointer-events:none; animation:glowPulse 6s ease-in-out infinite; }
+
+        .hero-bg-layer { position:absolute; inset:-20% -20%; background-image:linear-gradient(rgba(201,168,76,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.06) 1px, transparent 1px); background-size:60px 60px; animation:gridDrift 8s linear infinite; pointer-events:none; }
+
+        .marquee-wrap { overflow:hidden; border-top:1px solid #1A1A1A; border-bottom:1px solid #1A1A1A; padding:1.1rem 0; background:#0D0D0D; }
+        .marquee-track { display:inline-flex; white-space:nowrap; animation:marqueeScroll 28s linear infinite; }
+        .marquee-track span { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.2em; color:#444; margin:0 1.25rem; }
+        .marquee-track span:nth-of-type(even) { color:#C9A84C; opacity:0.6; }
 
         .hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem; }
         .brand { text-align:center; animation:fadeUp 0.6s ease both; position:relative; z-index:1; }
@@ -234,8 +284,9 @@ export default function App() {
 
         {/* HERO */}
         <div className="hero">
-          <div className="glow" style={{top:"10%", left:"15%"}}></div>
-          <div className="glow" style={{bottom:"5%", right:"10%", animationDelay:"2s"}}></div>
+          <div className="hero-bg-layer"></div>
+          <div className="glow glow-1" style={{top:"10%", left:"15%"}}></div>
+          <div className="glow glow-2" style={{bottom:"5%", right:"10%", animationDelay:"2s"}}></div>
           <div className="brand">
             <div className="logo">SPARES<span>ANYWHERE</span></div>
             <div className="walker-wrap">
@@ -272,12 +323,20 @@ export default function App() {
 
         {/* STATS */}
         <div className="section">
-          <div className="section-inner reveal stagger stats">
-            <div className="stat"><div className="stat-num">3</div><div className="stat-lbl">Countries</div></div>
+          <div className="section-inner reveal stagger count-trigger stats">
+            <div className="stat"><div className="stat-num">{countries}</div><div className="stat-lbl">Countries</div></div>
             <div className="stat-div"></div>
-            <div className="stat"><div className="stat-num">48h</div><div className="stat-lbl">Avg. Turnaround</div></div>
+            <div className="stat"><div className="stat-num">{hours}h</div><div className="stat-lbl">Avg. Turnaround</div></div>
             <div className="stat-div"></div>
             <div className="stat"><div className="stat-num">OEM</div><div className="stat-lbl">& Aftermarket</div></div>
+          </div>
+        </div>
+
+        {/* MARQUEE */}
+        <div className="marquee-wrap">
+          <div className="marquee-track">
+            <span>ROLLS-ROYCE</span><span>•</span><span>MERCEDES-BENZ</span><span>•</span><span>BMW</span><span>•</span><span>FERRARI</span><span>•</span><span>TOYOTA</span><span>•</span><span>RANGE ROVER</span><span>•</span><span>PORSCHE</span><span>•</span>
+            <span>ROLLS-ROYCE</span><span>•</span><span>MERCEDES-BENZ</span><span>•</span><span>BMW</span><span>•</span><span>FERRARI</span><span>•</span><span>TOYOTA</span><span>•</span><span>RANGE ROVER</span><span>•</span><span>PORSCHE</span><span>•</span>
           </div>
         </div>
 
