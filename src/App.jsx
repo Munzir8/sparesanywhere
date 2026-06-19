@@ -130,6 +130,7 @@ export default function App() {
   if (view === "admin" && adminAuth) return <AdminDashboard onBack={() => { setView("home"); setAdminAuth(false); }} />;
   if (view === "stories") return <StoriesPage onBack={() => setView("home")} onStory={(id) => { setStoryId(id); setView("story"); }} />;
   if (view === "story") return <StoryDetail storyId={storyId} onBack={() => setView("home")} onStories={() => setView("stories")} />;
+  if (view === "track") return <TrackOrder onBack={() => setView("home")} />;
 
   return (
     <>
@@ -225,6 +226,11 @@ export default function App() {
             <div className="card-icon">📖</div>
             <div className="card-title">Sourcing Stories</div>
             <div className="card-desc">Real jobs. Rare parts. How we found them.</div>
+          </div>
+          <div className="card clickable" onClick={() => setView("track")}>
+            <div className="card-icon">📍</div>
+            <div className="card-title">Track Your Order</div>
+            <div className="card-desc">Enter your Order ID to see live status.</div>
           </div>
           {isAdminDevice && (
           <div className="card">
@@ -515,6 +521,135 @@ function StoryDetail({ storyId, onBack, onStories }) {
             <button className="sd-footer-btn primary" onClick={onBack}>Submit a part request →</button>
           </div>
         </article>
+      </div>
+    </>
+  );
+}
+
+// ─── TRACK ORDER ──────────────────────────────────────────────────────────────
+const STATUS_FLOW = ["pending", "quoted", "confirmed", "sourcing", "fulfilled"];
+
+function TrackOrder({ onBack }) {
+  const [orderId, setOrderId] = useState("");
+  const [order, setOrder] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const [error, setError] = useState("");
+  const [progress, setProgress] = useState(0);
+
+  async function handleTrack() {
+    if (!orderId.trim()) return;
+    setSearching(true); setError(""); setOrder(null); setProgress(0);
+    try {
+      const results = await sbFetch(`/orders?id=eq.${encodeURIComponent(orderId.trim().toUpperCase())}`);
+      if (results.length === 0) {
+        setError("No order found with that ID. Double check it and try again.");
+      } else {
+        const o = mapOrder(results[0]);
+        setOrder(o);
+        const idx = o.status === "cancelled" ? -1 : STATUS_FLOW.indexOf(o.status);
+        const pct = idx < 0 ? 0 : (idx / (STATUS_FLOW.length - 1)) * 100;
+        setTimeout(() => setProgress(pct), 150);
+      }
+    } catch (e) {
+      setError("Something went wrong. Check your connection and try again.");
+    }
+    setSearching(false);
+  }
+
+  const currentIdx = order ? STATUS_FLOW.indexOf(order.status) : -1;
+
+  return (
+    <>
+      <style>{FONT}{BASE}{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulse { 0%,100% { box-shadow:0 0 0 0 rgba(201,168,76,0.5); } 50% { box-shadow:0 0 0 8px rgba(201,168,76,0); } }
+        .trk-page { min-height:100vh; background:#0A0A0A; font-family:'Syne',sans-serif; }
+        .trk-hdr { display:flex; align-items:center; justify-content:space-between; padding:1.25rem 2rem; border-bottom:1px solid #1A1A1A; }
+        .trk-logo { font-size:1.1rem; font-weight:800; color:#F5F0E8; }
+        .trk-logo span { color:#C9A84C; }
+        .trk-back { font-family:'DM Mono',monospace; font-size:0.72rem; cursor:pointer; letter-spacing:0.1em; text-transform:uppercase; border:1px solid #222; padding:0.4rem 0.9rem; border-radius:2px; background:none; transition:all 0.2s; color:#F5F0E8; }
+        .trk-back:hover { border-color:#C9A84C; color:#C9A84C; }
+        .trk-body { max-width:560px; margin:0 auto; padding:3.5rem 1.5rem 5rem; animation:fadeUp 0.5s ease both; }
+        .trk-h1 { font-size:1.6rem; font-weight:800; color:#F5F0E8; margin-bottom:0.5rem; letter-spacing:-0.02em; }
+        .trk-sub { font-family:'DM Mono',monospace; font-size:0.78rem; color:#666; margin-bottom:2rem; line-height:1.6; }
+        .trk-row { display:flex; gap:0.6rem; margin-bottom:0.75rem; }
+        .trk-input { flex:1; background:#111; border:1px solid #222; color:#F5F0E8; font-family:'DM Mono',monospace; font-size:0.9rem; padding:0.8rem 1rem; border-radius:2px; outline:none; transition:border-color 0.2s; text-transform:uppercase; }
+        .trk-input:focus { border-color:#C9A84C; }
+        .trk-btn { background:#C9A84C; color:#0A0A0A; border:none; font-family:'Syne',sans-serif; font-weight:800; font-size:0.85rem; padding:0 1.5rem; cursor:pointer; border-radius:2px; transition:opacity 0.2s; white-space:nowrap; }
+        .trk-btn:hover:not(:disabled) { opacity:0.85; }
+        .trk-btn:disabled { opacity:0.4; cursor:not-allowed; }
+        .trk-err { font-family:'DM Mono',monospace; font-size:0.75rem; color:#EF4444; margin-bottom:1rem; }
+        .trk-result { background:#111; border:1px solid #1A1A1A; border-radius:2px; padding:1.75rem; margin-top:2rem; animation:fadeUp 0.5s ease both; }
+        .trk-oid { font-family:'DM Mono',monospace; font-size:0.75rem; color:#C9A84C; margin-bottom:0.3rem; }
+        .trk-part { font-size:1.15rem; font-weight:800; color:#F5F0E8; margin-bottom:0.25rem; }
+        .trk-car { font-family:'DM Mono',monospace; font-size:0.78rem; color:#888; margin-bottom:2rem; }
+        .trk-timeline { position:relative; padding:0 4px; margin-bottom:2rem; }
+        .trk-track-bg { position:absolute; top:13px; left:14px; right:14px; height:2px; background:#222; }
+        .trk-track-fill { position:absolute; top:13px; left:14px; height:2px; background:#C9A84C; transition:width 1.4s cubic-bezier(0.4,0,0.2,1); width:0%; }
+        .trk-steps { display:flex; justify-content:space-between; position:relative; }
+        .trk-step { text-align:center; flex:1; }
+        .trk-dot { width:26px; height:26px; border-radius:50%; margin:0 auto 8px; border:2px solid #222; background:#0A0A0A; transition:all 0.4s ease; display:flex; align-items:center; justify-content:center; font-size:0.7rem; }
+        .trk-dot.done { background:#C9A84C; border-color:#C9A84C; color:#0A0A0A; }
+        .trk-dot.current { background:#C9A84C; border-color:#C9A84C; color:#0A0A0A; animation:pulse 1.8s infinite; }
+        .trk-step-lbl { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.05em; text-transform:uppercase; color:#555; }
+        .trk-step-lbl.active { color:#C9A84C; font-weight:500; }
+        .trk-quote { font-family:'DM Mono',monospace; font-size:0.82rem; color:#10B981; background:#0A1A0F; border:1px solid #1A3A1F; padding:0.75rem 1rem; border-radius:2px; margin-top:1.5rem; }
+        .trk-cancelled { font-family:'DM Mono',monospace; font-size:0.82rem; color:#EF4444; background:#1A0505; border:1px solid #3A1A1A; padding:0.75rem 1rem; border-radius:2px; text-align:center; }
+        .trk-hint { font-family:'DM Mono',monospace; font-size:0.68rem; color:#444; margin-top:1.5rem; line-height:1.6; }
+      `}</style>
+      <div className="trk-page">
+        <div className="trk-hdr">
+          <div className="trk-logo">SPARES<span>ANYWHERE</span></div>
+          <button className="trk-back" onClick={onBack}>← Home</button>
+        </div>
+        <div className="trk-body">
+          <div className="trk-h1">Track Your Order</div>
+          <div className="trk-sub">Enter the Order ID from your confirmation to see live status.</div>
+          <div className="trk-row">
+            <input
+              className="trk-input"
+              placeholder="e.g. ORD-AB12CD"
+              value={orderId}
+              onChange={e => setOrderId(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleTrack()}
+            />
+            <button className="trk-btn" onClick={handleTrack} disabled={searching || !orderId.trim()}>
+              {searching ? "Searching…" : "Track →"}
+            </button>
+          </div>
+          {error && <div className="trk-err">{error}</div>}
+
+          {order && (
+            <div className="trk-result">
+              <div className="trk-oid">{order.id}</div>
+              <div className="trk-part">{order.part}</div>
+              <div className="trk-car">{order.car} {order.year && `· ${order.year}`} · {order.garage}</div>
+
+              {order.status === "cancelled" ? (
+                <div className="trk-cancelled">This order has been cancelled. Contact us on WhatsApp if you have questions.</div>
+              ) : (
+                <div className="trk-timeline">
+                  <div className="trk-track-bg" style={{right: "14px"}}></div>
+                  <div className="trk-track-fill" style={{width: `calc(${progress}% * 0.92)`}}></div>
+                  <div className="trk-steps">
+                    {STATUS_FLOW.map((s, i) => (
+                      <div key={s} className="trk-step">
+                        <div className={`trk-dot ${i < currentIdx ? "done" : i === currentIdx ? "current" : ""}`}>
+                          {i < currentIdx ? "✓" : ""}
+                        </div>
+                        <div className={`trk-step-lbl ${i === currentIdx ? "active" : ""}`}>{STATUS[s].label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {order.quote && <div className="trk-quote">💰 Quote: {order.quote}</div>}
+            </div>
+          )}
+
+          <div className="trk-hint">Order ID was sent to you when you submitted your part request. Lost it? Contact us on WhatsApp with your garage name and we'll look it up.</div>
+        </div>
       </div>
     </>
   );
