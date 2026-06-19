@@ -136,6 +136,22 @@ export default function App() {
     return () => obs.disconnect();
   }, [view]);
 
+  // Generate a starfield once
+  const [stars, setStars] = useState({ near: "", mid: "", far: "" });
+  useEffect(() => {
+    if (view !== "home") return;
+    function genStars(count, sizePx) {
+      let shadows = [];
+      for (let i = 0; i < count; i++) {
+        const x = Math.round(Math.random() * 2000);
+        const y = Math.round(Math.random() * 3000);
+        shadows.push(`${x}px ${y}px 0 #fff`);
+      }
+      return shadows.join(",");
+    }
+    setStars({ near: genStars(60, 2), mid: genStars(90, 1.5), far: genStars(140, 1) });
+  }, [view]);
+
   // Parallax scroll effect for the hero
   useEffect(() => {
     if (view !== "home") return;
@@ -145,10 +161,16 @@ export default function App() {
       const glow1 = document.querySelector(".glow-1");
       const glow2 = document.querySelector(".glow-2");
       const brandEl = document.querySelector(".brand");
+      const starsNear = document.querySelector(".stars-near");
+      const starsMid = document.querySelector(".stars-mid");
+      const starsFar = document.querySelector(".stars-far");
       if (heroEl) heroEl.style.transform = `translateY(${y * 0.35}px)`;
       if (glow1) glow1.style.transform = `translate(${y * 0.15}px, ${y * 0.25}px)`;
       if (glow2) glow2.style.transform = `translate(${-y * 0.12}px, ${y * 0.2}px)`;
       if (brandEl) { brandEl.style.transform = `translateY(${y * 0.2}px)`; brandEl.style.opacity = Math.max(1 - y / 500, 0); }
+      if (starsNear) starsNear.style.transform = `translateY(${-y * 0.5}px)`;
+      if (starsMid) starsMid.style.transform = `translateY(${-y * 0.3}px)`;
+      if (starsFar) starsFar.style.transform = `translateY(${-y * 0.12}px)`;
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -195,6 +217,18 @@ export default function App() {
         @keyframes glowPulse { 0%,100%{opacity:0.15;} 50%{opacity:0.35;} }
         @keyframes marqueeScroll { from{transform:translateX(0);} to{transform:translateX(-50%);} }
         @keyframes gridDrift { from{background-position:0 0;} to{background-position:0 60px;} }
+        @keyframes twinkle { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
+        @keyframes shootAcross { 0%{transform:translate(0,0) rotate(-35deg); opacity:0;} 5%{opacity:1;} 25%{opacity:0;} 100%{transform:translate(420px,420px) rotate(-35deg); opacity:0;} }
+
+        .stars-far, .stars-mid, .stars-near { position:absolute; top:0; left:0; width:2px; height:2px; border-radius:50%; background:transparent; pointer-events:none; height:3000px; }
+        .stars-far { animation:twinkle 6s ease-in-out infinite; opacity:0.5; }
+        .stars-mid { animation:twinkle 4.5s ease-in-out infinite; opacity:0.7; animation-delay:0.5s; }
+        .stars-near { animation:twinkle 3s ease-in-out infinite; opacity:0.9; animation-delay:1s; }
+
+        .shooting-star { position:absolute; top:0; left:0; width:2px; height:2px; background:#fff; border-radius:50%; box-shadow:0 0 6px 1px rgba(255,255,255,0.8); pointer-events:none; }
+        .shooting-star::before { content:''; position:absolute; top:0; left:0; width:60px; height:1px; background:linear-gradient(to left, rgba(255,255,255,0.8), transparent); transform:translateX(-58px); }
+        .shooting-star.s1 { top:8%; left:15%; animation:shootAcross 7s linear infinite; animation-delay:1s; }
+        .shooting-star.s2 { top:22%; left:55%; animation:shootAcross 9s linear infinite; animation-delay:4s; }
         html { scroll-behavior:smooth; }
         .walker-wrap { position:relative; height:28px; margin:0.3rem auto 0.1rem; overflow:visible; width:min(400px, 90vw); }
         .walker { position:absolute; top:0; left:0; animation:carDrive 10s linear infinite; }
@@ -216,18 +250,20 @@ export default function App() {
         .stagger.revealed > *:nth-child(3){transition-delay:180ms;}
         .stagger.revealed > *:nth-child(4){transition-delay:270ms;}
 
-        .home-wrap { width:100%; background:#0A0A0A; font-family:'Syne',sans-serif; overflow-x:hidden; }
+        .home-wrap { width:100%; background:#0A0A0A; font-family:'Syne',sans-serif; overflow-x:hidden; position:relative; }
+        .home-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:100%; background:radial-gradient(ellipse 80% 50% at 50% 0%, rgba(80,40,120,0.12), transparent 60%); pointer-events:none; z-index:0; }
+        .stars-far, .stars-mid, .stars-near { z-index:0; }
 
         .glow { position:absolute; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(201,168,76,0.5) 0%, transparent 70%); filter:blur(40px); pointer-events:none; animation:glowPulse 6s ease-in-out infinite; }
 
         .hero-bg-layer { position:absolute; inset:-20% -20%; background-image:linear-gradient(rgba(201,168,76,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.06) 1px, transparent 1px); background-size:60px 60px; animation:gridDrift 8s linear infinite; pointer-events:none; }
 
-        .marquee-wrap { overflow:hidden; border-top:1px solid #1A1A1A; border-bottom:1px solid #1A1A1A; padding:1.1rem 0; background:#0D0D0D; }
+        .marquee-wrap { overflow:hidden; border-top:1px solid #1A1A1A; border-bottom:1px solid #1A1A1A; padding:1.1rem 0; background:#0D0D0D; position:relative; z-index:1; }
         .marquee-track { display:inline-flex; white-space:nowrap; animation:marqueeScroll 28s linear infinite; }
         .marquee-track span { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.2em; color:#444; margin:0 1.25rem; }
         .marquee-track span:nth-of-type(even) { color:#C9A84C; opacity:0.6; }
 
-        .hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem; }
+        .hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem; z-index:1; }
         .brand { text-align:center; animation:fadeUp 0.6s ease both; position:relative; z-index:1; }
         .logo { font-size:clamp(1.8rem,6vw,3.5rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
         .logo > span:first-of-type { color:#C9A84C; animation:shimmer 4s ease-in-out infinite; display:inline-block; }
@@ -238,7 +274,7 @@ export default function App() {
         .scroll-cue-lbl { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:#666; }
         .scroll-cue-line { width:1px; height:28px; background:linear-gradient(to bottom, #C9A84C, transparent); }
 
-        .section { padding:6rem 2rem; position:relative; }
+        .section { padding:6rem 2rem; position:relative; z-index:1; }
         .section-inner { max-width:900px; margin:0 auto; }
 
         .stats { display:flex; gap:2rem; justify-content:center; flex-wrap:wrap; }
@@ -281,6 +317,11 @@ export default function App() {
         .wa-number { font-family:'DM Mono',monospace; font-size:0.78rem; color:#F5F0E8; }
       `}</style>
       <div className="home-wrap">
+        <div className="stars-far" style={{boxShadow: stars.far}}></div>
+        <div className="stars-mid" style={{boxShadow: stars.mid}}></div>
+        <div className="stars-near" style={{boxShadow: stars.near}}></div>
+        <div className="shooting-star s1"></div>
+        <div className="shooting-star s2"></div>
 
         {/* HERO */}
         <div className="hero">
