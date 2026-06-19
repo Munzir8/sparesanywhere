@@ -218,10 +218,9 @@ export default function App() {
         @keyframes twinkle { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
         @keyframes shootAcross { 0%{transform:translate(0,0) rotate(-35deg); opacity:0;} 5%{opacity:1;} 22%{opacity:0;} 100%{transform:translate(600px,500px) rotate(-35deg); opacity:0;} }
 
-        .stars-far, .stars-mid, .stars-near { position:absolute; top:0; left:0; width:3px; height:3000px; border-radius:50%; background:transparent; pointer-events:none; }
-        .stars-far { animation:twinkle 6s ease-in-out infinite; opacity:0.6; width:2px; }
-        .stars-mid { animation:twinkle 4.5s ease-in-out infinite; opacity:0.85; animation-delay:0.5s; width:3px; }
-        .stars-near { animation:twinkle 3s ease-in-out infinite; opacity:1; animation-delay:1s; width:4px; }
+        .stars-far { position:absolute; top:0; left:0; width:1.5px; height:1.5px; border-radius:50%; background:transparent; pointer-events:none; animation:twinkle 6s ease-in-out infinite; opacity:0.6; }
+        .stars-mid { position:absolute; top:0; left:0; width:2px; height:2px; border-radius:50%; background:transparent; pointer-events:none; animation:twinkle 4.5s ease-in-out infinite; opacity:0.85; animation-delay:0.5s; }
+        .stars-near { position:absolute; top:0; left:0; width:3px; height:3px; border-radius:50%; background:transparent; pointer-events:none; animation:twinkle 3s ease-in-out infinite; opacity:1; }
 
         .shooting-star { position:absolute; top:0; left:0; width:3px; height:3px; background:#fff; border-radius:50%; box-shadow:0 0 12px 3px rgba(255,255,255,1); pointer-events:none; z-index:2; }
         .shooting-star::before { content:''; position:absolute; top:1px; left:0; width:110px; height:2px; background:linear-gradient(to left, rgba(255,255,255,0.9), transparent); transform:translateX(-108px); }
