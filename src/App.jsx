@@ -121,77 +121,15 @@ export default function App() {
 
   const isAdminDevice = new URLSearchParams(window.location.search).has("admin");
 
-  // Scroll-reveal observer for the cinematic homepage
+  // Scroll-reveal observer
   useEffect(() => {
     if (view !== "home") return;
     const obs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add("revealed");
-          if (e.target.classList.contains("count-trigger")) startCountUp();
-        }
-      });
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("revealed"); });
     }, { threshold: 0.15 });
     document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
     return () => obs.disconnect();
   }, [view]);
-
-  // Generate a starfield once
-  const [stars, setStars] = useState({ near: "", mid: "", far: "" });
-  useEffect(() => {
-    if (view !== "home") return;
-    function genStars(count, color) {
-      const w = Math.max(window.innerWidth, 360);
-      let shadows = [];
-      for (let i = 0; i < count; i++) {
-        const x = Math.round(Math.random() * w);
-        const y = Math.round(Math.random() * 3200);
-        shadows.push(`${x}px ${y}px 0 ${color}`);
-      }
-      return shadows.join(",");
-    }
-    setStars({ near: genStars(110, "#FFFFFF"), mid: genStars(140, "#E8DCC0"), far: genStars(180, "#C9A84C") });
-  }, [view]);
-
-  // Parallax scroll effect for the hero
-  useEffect(() => {
-    if (view !== "home") return;
-    function onScroll() {
-      const y = window.scrollY;
-      const glow1 = document.querySelector(".glow-1");
-      const glow2 = document.querySelector(".glow-2");
-      const brandEl = document.querySelector(".brand");
-      const starsNear = document.querySelector(".stars-near");
-      const starsMid = document.querySelector(".stars-mid");
-      const starsFar = document.querySelector(".stars-far");
-      if (glow1) glow1.style.transform = `translate(${y * 0.15}px, ${y * 0.25}px)`;
-      if (glow2) glow2.style.transform = `translate(${-y * 0.12}px, ${y * 0.2}px)`;
-      if (brandEl) { brandEl.style.transform = `translateY(${y * 0.2}px)`; brandEl.style.opacity = Math.max(1 - y / 500, 0); }
-      if (starsNear) starsNear.style.transform = `translateY(${-y * 0.5}px)`;
-      if (starsMid) starsMid.style.transform = `translateY(${-y * 0.3}px)`;
-      if (starsFar) starsFar.style.transform = `translateY(${-y * 0.12}px)`;
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [view]);
-
-  const [countedUp, setCountedUp] = useState(false);
-  const [countries, setCountries] = useState(0);
-  const [hours, setHours] = useState(0);
-  function startCountUp() {
-    if (countedUp) return;
-    setCountedUp(true);
-    const dur = 900;
-    const start = performance.now();
-    function tick(now) {
-      const t = Math.min((now - start) / dur, 1);
-      const ease = 1 - Math.pow(1 - t, 3);
-      setCountries(Math.round(ease * 3));
-      setHours(Math.round(ease * 48));
-      if (t < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
 
   function enterAdmin() {
     if (adminPw === ADMIN_PASSWORD) { setAdminAuth(true); setView("admin"); setPwError(false); }
@@ -206,269 +144,279 @@ export default function App() {
 
   return (
     <>
-      <style>{FONT}{BASE}{`
-        @keyframes twinkle { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
-        @keyframes shootAcross { 0%{transform:translate(0,0) rotate(-35deg); opacity:0;} 5%{opacity:1;} 22%{opacity:0;} 100%{transform:translate(600px,500px) rotate(-35deg); opacity:0;} }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
         @keyframes carDrive { 0%{left:0;transform:scaleX(1);} 47%{left:calc(100% - 44px);transform:scaleX(1);} 50%{left:calc(100% - 44px);transform:scaleX(-1);} 97%{left:0;transform:scaleX(-1);} 100%{left:0;transform:scaleX(1);} }
         @keyframes carBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-1px);} }
         @keyframes wheelSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-        @keyframes tickerScroll { from{transform:translateX(0);} to{transform:translateX(-50%);} }
-
         html { scroll-behavior:smooth; }
-        .sx-wrap { width:100%; background:#000; font-family:'Syne',sans-serif; overflow-x:hidden; position:relative; color:#F5F0E8; }
 
-        .stars-far, .stars-mid, .stars-near { position:absolute; top:0; left:0; width:2px; height:2px; border-radius:50%; background:transparent; pointer-events:none; z-index:0; }
-        .stars-far { animation:twinkle 6s ease-in-out infinite; opacity:0.5; }
-        .stars-mid { animation:twinkle 4.5s ease-in-out infinite; opacity:0.75; animation-delay:0.5s; }
-        .stars-near { animation:twinkle 3s ease-in-out infinite; opacity:1; width:3px; height:3px; }
-        .shooting-star { position:absolute; top:0; left:0; width:3px; height:3px; background:#fff; border-radius:50%; box-shadow:0 0 12px 3px rgba(255,255,255,1); pointer-events:none; z-index:1; }
-        .shooting-star::before { content:''; position:absolute; top:1px; left:0; width:110px; height:2px; background:linear-gradient(to left, rgba(255,255,255,0.9), transparent); transform:translateX(-108px); }
-        .shooting-star.s1 { top:8%; left:10%; animation:shootAcross 6s linear infinite; animation-delay:0.5s; }
-        .shooting-star.s2 { top:18%; left:50%; animation:shootAcross 8s linear infinite; animation-delay:3s; }
-        .shooting-star.s3 { top:35%; left:75%; animation:shootAcross 7s linear infinite; animation-delay:5.5s; }
+        .lp-wrap { width:100%; background:#F3EFE6; font-family:'Syne',sans-serif; color:#1A1A1A; overflow-x:hidden; }
 
-        /* TOP NAV — minimal, SpaceX style */
-        .sx-nav { position:fixed; top:0; left:0; right:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:1.5rem 2.5rem; mix-blend-mode:difference; }
-        .sx-logo { font-size:1rem; font-weight:800; letter-spacing:0.05em; color:#fff; }
-        .sx-logo span { color:#C9A84C; }
-        .sx-menu-dots { display:flex; gap:4px; cursor:pointer; }
-        .sx-menu-dots div { width:4px; height:4px; border-radius:50%; background:#fff; }
+        .reveal { opacity:0; transform:translateY(28px); transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+        .reveal.revealed { opacity:1; transform:translateY(0); }
+        .stagger.revealed > *:nth-child(1){transition-delay:0ms;}
+        .stagger.revealed > *:nth-child(2){transition-delay:100ms;}
+        .stagger.revealed > *:nth-child(3){transition-delay:200ms;}
 
-        /* HERO — full bleed, huge type */
-        .sx-hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem; z-index:1; }
-        .sx-hero-eyebrow { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.3em; text-transform:uppercase; color:#C9A84C; margin-bottom:1.5rem; animation:fadeUp 0.8s ease both; }
-        .sx-hero-title { font-size:clamp(3rem,11vw,8.5rem); font-weight:800; line-height:0.95; letter-spacing:-0.02em; color:#fff; animation:fadeUp 0.9s 0.1s ease both; }
-        .sx-hero-title span { color:#C9A84C; }
-        .sx-hero-sub { font-family:'DM Mono',monospace; font-size:0.85rem; color:#999; letter-spacing:0.1em; text-transform:uppercase; margin-top:1.5rem; animation:fadeUp 0.9s 0.25s ease both; }
-        .sx-hero-cta { margin-top:2.5rem; display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; animation:fadeUp 0.9s 0.4s ease both; }
-        .sx-btn { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; padding:0.9rem 2rem; border-radius:1px; cursor:pointer; transition:all 0.25s; border:1px solid #C9A84C; }
-        .sx-btn.fill { background:#C9A84C; color:#000; }
-        .sx-btn.fill:hover { background:#fff; border-color:#fff; }
-        .sx-btn.ghost { background:transparent; color:#fff; }
-        .sx-btn.ghost:hover { background:rgba(255,255,255,0.08); }
+        /* NAV */
+        .lp-nav { position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:1.25rem 2.5rem; background:rgba(243,239,230,0.92); backdrop-filter:blur(8px); border-bottom:1px solid #E2DCC9; }
+        .lp-logo { font-size:1.05rem; font-weight:800; letter-spacing:-0.01em; color:#1A1A1A; }
+        .lp-logo span { color:#C9A84C; }
+        .lp-nav-links { display:flex; gap:2rem; }
+        .lp-nav-links a, .lp-nav-links button { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.05em; text-transform:uppercase; color:#5A5A52; background:none; border:none; cursor:pointer; transition:color 0.2s; }
+        .lp-nav-links a:hover, .lp-nav-links button:hover { color:#1A1A1A; }
+        @media(max-width:680px){ .lp-nav-links { display:none; } }
 
-        .sx-scroll-cue { position:absolute; bottom:2.5rem; left:50%; transform:translateX(-50%); width:1px; height:50px; background:linear-gradient(to bottom, #C9A84C, transparent); z-index:1; }
+        /* HERO */
+        .lp-hero { padding:7rem 2.5rem 5rem; max-width:1100px; margin:0 auto; }
+        .lp-hero-eyebrow { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; margin-bottom:1.25rem; animation:fadeUp 0.7s ease both; }
+        .lp-hero-title { font-size:clamp(2.4rem,6vw,4.2rem); font-weight:700; line-height:1.05; letter-spacing:-0.02em; color:#1A1A1A; max-width:760px; animation:fadeUp 0.8s 0.1s ease both; }
+        .lp-hero-sub { font-family:'DM Mono',monospace; font-size:0.9rem; color:#6B6B60; max-width:520px; line-height:1.7; margin-top:1.5rem; animation:fadeUp 0.8s 0.2s ease both; }
+        .lp-hero-cta { display:flex; gap:1rem; margin-top:2.5rem; flex-wrap:wrap; animation:fadeUp 0.8s 0.3s ease both; }
+        .lp-btn { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.85rem 1.75rem; border-radius:3px; cursor:pointer; transition:all 0.2s; }
+        .lp-btn.fill { background:#1A1A1A; color:#F3EFE6; border:1px solid #1A1A1A; }
+        .lp-btn.fill:hover { background:#C9A84C; border-color:#C9A84C; color:#1A1A1A; }
+        .lp-btn.ghost { background:transparent; color:#1A1A1A; border:1px solid #1A1A1A; }
+        .lp-btn.ghost:hover { background:#1A1A1A; color:#F3EFE6; }
 
-        /* TICKER — bottom info bar, SpaceX live-data style */
-        .sx-ticker-wrap { border-top:1px solid #2C2C2C; border-bottom:1px solid #2C2C2C; background:#0A0A0A; padding:1rem 0; overflow:hidden; position:relative; z-index:1; }
-        .sx-ticker { display:inline-flex; white-space:nowrap; animation:tickerScroll 22s linear infinite; }
-        .sx-ticker span { font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.15em; color:#9A9A9A; margin:0 1.5rem; text-transform:uppercase; }
-        .sx-ticker span.hl { color:#C9A84C; }
+        .lp-walker-wrap { position:relative; height:24px; margin:2rem 0 0; overflow:visible; width:200px; }
+        .lp-walker { position:absolute; top:0; left:0; animation:carDrive 9s linear infinite; }
+        .lp-car-svg { animation:carBob 0.8s ease-in-out infinite; overflow:visible; }
+        .lp-wheel-f { animation:wheelSpin 1.5s linear infinite; transform-origin:9px 18px; }
+        .lp-wheel-r { animation:wheelSpin 1.5s linear infinite; transform-origin:32px 18px; }
 
-        /* FULL-BLEED SECTIONS */
-        .sx-section { position:relative; min-height:90vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:5rem 2rem; z-index:1; border-bottom:1px solid #1A1A1A; }
-        .sx-section-num { font-family:'DM Mono',monospace; font-size:0.7rem; color:#666666; letter-spacing:0.2em; margin-bottom:1.25rem; }
-        .sx-section-title { font-size:clamp(2.2rem,7vw,5rem); font-weight:800; color:#fff; line-height:1; letter-spacing:-0.02em; text-align:center; max-width:900px; }
-        .sx-section-title span { color:#C9A84C; }
-        .sx-section-sub { font-family:'DM Mono',monospace; font-size:0.85rem; color:#9A9A9A; max-width:560px; text-align:center; margin-top:1.5rem; line-height:1.8; }
-        .sx-section-action { margin-top:2.5rem; }
+        /* MANIFESTO */
+        .lp-manifesto { max-width:1100px; margin:0 auto; padding:4rem 2.5rem; border-top:1px solid #E2DCC9; display:grid; grid-template-columns:200px 1fr; gap:2rem; }
+        @media(max-width:680px){ .lp-manifesto { grid-template-columns:1fr; } }
+        .lp-manifesto-label { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; }
+        .lp-manifesto-text { font-size:clamp(1.3rem,2.8vw,1.9rem); font-weight:600; line-height:1.4; letter-spacing:-0.01em; color:#1A1A1A; }
+        .lp-manifesto-text .dim { color:#9A958A; }
 
-        .sx-stats-row { display:flex; gap:4rem; flex-wrap:wrap; justify-content:center; margin-top:3.5rem; }
-        .sx-stat { text-align:center; }
-        .sx-stat-num { font-size:clamp(2rem,5vw,3.5rem); font-weight:800; color:#C9A84C; letter-spacing:-0.02em; }
-        .sx-stat-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#9A9A9A; letter-spacing:0.15em; text-transform:uppercase; margin-top:0.5rem; }
+        /* SERVICES — numbered like 001/002/003 */
+        .lp-services { max-width:1100px; margin:0 auto; padding:1rem 2.5rem 4rem; border-top:1px solid #E2DCC9; }
+        .lp-services-heading { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#9A958A; padding:2rem 0 1rem; }
+        .lp-service-row { display:grid; grid-template-columns:90px 1fr 200px; gap:1.5rem; align-items:start; padding:2rem 0; border-top:1px solid #E2DCC9; cursor:pointer; transition:background 0.2s; }
+        @media(max-width:680px){ .lp-service-row { grid-template-columns:60px 1fr; } .lp-service-row > *:nth-child(3){ display:none; } }
+        .lp-service-row:hover { background:#EAE4D4; }
+        .lp-service-num { font-family:'DM Mono',monospace; font-size:0.78rem; color:#C9A84C; padding-top:0.2rem; }
+        .lp-service-body h3 { font-size:1.3rem; font-weight:700; margin-bottom:0.5rem; color:#1A1A1A; }
+        .lp-service-body p { font-family:'DM Mono',monospace; font-size:0.78rem; color:#6B6B60; line-height:1.6; max-width:480px; }
+        .lp-service-tags { display:flex; flex-direction:column; gap:0.3rem; align-items:flex-end; }
+        .lp-service-tag { font-family:'DM Mono',monospace; font-size:0.65rem; color:#9A958A; letter-spacing:0.05em; }
+        .lp-service-link { font-family:'DM Mono',monospace; font-size:0.7rem; color:#1A1A1A; margin-top:0.5rem; display:flex; align-items:center; gap:6px; }
+        .lp-service-link::after { content:'→'; transition:transform 0.2s; }
+        .lp-service-row:hover .lp-service-link::after { transform:translateX(4px); }
 
-        /* CAR GALLERY */
-        .sx-gallery { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; max-width:1100px; width:100%; margin-top:3rem; }
-        @media(max-width:760px){ .sx-gallery { grid-template-columns:repeat(2,1fr); } }
-        .sx-gallery-item { aspect-ratio:3/4; background-size:cover; background-position:center; border-radius:2px; position:relative; overflow:hidden; border:1px solid #2C2C2C; transition:transform 0.3s; }
-        .sx-gallery-item:hover { transform:scale(1.03); }
-        .sx-gallery-item::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.85), transparent 50%); }
-        .sx-gallery-label { position:absolute; bottom:1rem; left:1rem; z-index:1; font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:#fff; }
+        /* PROCESS — 1,2,3,4 steps */
+        .lp-process { max-width:1100px; margin:0 auto; padding:4rem 2.5rem; border-top:1px solid #E2DCC9; }
+        .lp-process-heading { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#9A958A; margin-bottom:2.5rem; }
+        .lp-process-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:2rem; }
+        @media(max-width:760px){ .lp-process-grid { grid-template-columns:1fr 1fr; } }
+        @media(max-width:480px){ .lp-process-grid { grid-template-columns:1fr; } }
+        .lp-process-num { font-size:2.2rem; font-weight:800; color:#E2DCC9; margin-bottom:0.75rem; line-height:1; }
+        .lp-process-title { font-size:1.05rem; font-weight:700; color:#1A1A1A; margin-bottom:0.5rem; }
+        .lp-process-desc { font-family:'DM Mono',monospace; font-size:0.76rem; color:#6B6B60; line-height:1.6; }
 
-        /* QUOTES */
-        .sx-quote-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; max-width:1100px; width:100%; margin-top:2.5rem; }
-        @media(max-width:760px){ .sx-quote-grid { grid-template-columns:1fr; } }
-        .sx-quote-card { border:1px solid #2C2C2C; border-radius:2px; padding:2rem; background:#0F0F0F; }
-        .sx-quote-text { font-family:'Playfair Display',serif; font-style:italic; font-size:1.05rem; color:#F5F0E8; line-height:1.6; margin-bottom:1.25rem; }
-        .sx-quote-author { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:#C9A84C; }
+        /* TESTIMONIALS */
+        .lp-testimonials { max-width:1100px; margin:0 auto; padding:4rem 2.5rem; border-top:1px solid #E2DCC9; }
+        .lp-test-heading { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#9A958A; margin-bottom:2.5rem; }
+        .lp-test-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
+        @media(max-width:760px){ .lp-test-grid { grid-template-columns:1fr; } }
+        .lp-test-card { background:#FAF7F0; border:1px solid #E2DCC9; border-radius:3px; padding:1.75rem; }
+        .lp-test-text { font-size:0.92rem; line-height:1.6; color:#2A2A24; margin-bottom:1.25rem; }
+        .lp-test-name { font-family:'DM Mono',monospace; font-size:0.72rem; font-weight:500; color:#1A1A1A; }
+        .lp-test-role { font-family:'DM Mono',monospace; font-size:0.68rem; color:#9A958A; margin-top:0.15rem; }
 
-        /* SERVICE BLOCKS — full width alternating */
-        .sx-services { width:100%; max-width:1100px; }
-        .sx-service-row { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; padding:4rem 0; border-bottom:1px solid #1A1A1A; }
-        @media(max-width:760px){ .sx-service-row { grid-template-columns:1fr; gap:1.5rem; } }
-        .sx-service-row:last-child { border-bottom:none; }
-        .sx-service-num { font-family:'DM Mono',monospace; font-size:0.7rem; color:#C9A84C; letter-spacing:0.2em; margin-bottom:1rem; }
-        .sx-service-title { font-size:clamp(1.5rem,3.5vw,2.4rem); font-weight:800; color:#fff; line-height:1.1; margin-bottom:1rem; cursor:pointer; transition:color 0.2s; }
-        .sx-service-title:hover { color:#C9A84C; }
-        .sx-service-desc { font-family:'DM Mono',monospace; font-size:0.82rem; color:#9A9A9A; line-height:1.8; margin-bottom:1.5rem; }
-        .sx-service-link { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:#C9A84C; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
-        .sx-service-link::after { content:'→'; transition:transform 0.2s; }
-        .sx-service-row:hover .sx-service-link::after { transform:translateX(6px); }
-        .sx-service-visual { aspect-ratio:4/3; background:#0F0F0F; border:1px solid #2C2C2C; border-radius:2px; display:flex; align-items:center; justify-content:center; font-size:3.5rem; position:relative; overflow:hidden; cursor:pointer; }
-        .sx-service-visual::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 50%, rgba(201,168,76,0.12), transparent 70%); }
+        /* CONTACT */
+        .lp-contact { max-width:1100px; margin:0 auto; padding:4rem 2.5rem 5rem; border-top:1px solid #E2DCC9; text-align:center; }
+        .lp-contact-eyebrow { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; margin-bottom:1rem; }
+        .lp-contact-title { font-size:clamp(1.8rem,4vw,2.6rem); font-weight:700; color:#1A1A1A; margin-bottom:2.5rem; }
+        .lp-wa-row { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+        .lp-wa-btn { display:flex; align-items:center; gap:0.6rem; background:#FAF7F0; border:1px solid #E2DCC9; border-radius:3px; padding:0.75rem 1.5rem; text-decoration:none; transition:all 0.2s; }
+        .lp-wa-btn:hover { border-color:#C9A84C; transform:translateY(-2px); }
+        .lp-wa-region { font-family:'DM Mono',monospace; font-size:0.62rem; color:#9A958A; letter-spacing:0.08em; text-transform:uppercase; }
+        .lp-wa-number { font-family:'DM Mono',monospace; font-size:0.78rem; color:#1A1A1A; }
 
-        .sx-pw-box { margin-top:2rem; max-width:280px; width:100%; }
-        .sx-pw-input { width:100%; background:#0A0A0A; border:1px solid #4A4A4A; color:#fff; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.7rem 1rem; border-radius:1px; outline:none; margin-bottom:0.5rem; }
-        .sx-pw-input:focus { border-color:#C9A84C; }
-        .sx-pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#EF4444; margin-top:0.4rem; }
+        .lp-admin-box { max-width:280px; margin:2rem auto 0; }
+        .lp-pw-input { width:100%; background:#fff; border:1px solid #D8D2BE; color:#1A1A1A; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.65rem 1rem; border-radius:3px; outline:none; margin-bottom:0.5rem; }
+        .lp-pw-input:focus { border-color:#C9A84C; }
+        .lp-pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#C0392B; margin-top:0.4rem; }
 
-        .sx-contact { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; margin-top:2.5rem; }
-        .sx-wa-btn { display:flex; align-items:center; gap:0.6rem; background:#0F0F0F; border:1px solid #2C2C2C; border-radius:2px; padding:0.75rem 1.5rem; text-decoration:none; transition:all 0.2s; }
-        .sx-wa-btn:hover { border-color:#25D366; background:#0D1A10; transform:translateY(-2px); }
-        .sx-wa-region { font-family:'DM Mono',monospace; font-size:0.6rem; color:#9A9A9A; letter-spacing:0.1em; text-transform:uppercase; }
-        .sx-wa-number { font-family:'DM Mono',monospace; font-size:0.78rem; color:#fff; }
-
-        .sx-footer { padding:3rem 2rem; text-align:center; font-family:'DM Mono',monospace; font-size:0.65rem; color:#666666; letter-spacing:0.1em; }
+        .lp-footer { text-align:center; padding:2rem; font-family:'DM Mono',monospace; font-size:0.65rem; color:#9A958A; letter-spacing:0.08em; border-top:1px solid #E2DCC9; }
       `}</style>
 
-      <div className="sx-wrap">
-        <div className="stars-far" style={{boxShadow: stars.far}}></div>
-        <div className="stars-mid" style={{boxShadow: stars.mid}}></div>
-        <div className="stars-near" style={{boxShadow: stars.near}}></div>
-        <div className="shooting-star s1"></div>
-        <div className="shooting-star s2"></div>
-        <div className="shooting-star s3"></div>
+      <div className="lp-wrap">
 
         {/* NAV */}
-        <nav className="sx-nav">
-          <div className="sx-logo">SPARES<span>ANYWHERE</span></div>
-          <div className="sx-menu-dots"><div></div><div></div><div></div></div>
+        <nav className="lp-nav">
+          <div className="lp-logo">SPARES<span>ANYWHERE</span></div>
+          <div className="lp-nav-links">
+            <button onClick={() => setView("garage")}>Garage Portal</button>
+            <button onClick={() => setView("stories")}>Stories</button>
+            <button onClick={() => setView("track")}>Track Order</button>
+          </div>
         </nav>
 
         {/* HERO */}
-        <div className="sx-hero">
-          <div className="sx-hero-eyebrow">Our Mission</div>
-          <h1 className="sx-hero-title">FIND ANY PART.<br/>ANY<span>WHERE</span>.</h1>
-          <div className="sx-hero-sub">Sourcing the world's rarest automotive parts — London, Dubai, Lagos.</div>
-          <div className="sx-hero-cta">
-            <button className="sx-btn fill" onClick={() => setView("garage")}>Submit a Request</button>
-            <button className="sx-btn ghost" onClick={() => setView("track")}>Track an Order</button>
+        <div className="lp-hero">
+          <div className="lp-hero-eyebrow">Automotive Parts · London · Dubai · Lagos</div>
+          <h1 className="lp-hero-title">We find the part your garage can't.</h1>
+          <p className="lp-hero-sub">SpareAnywhere sources OEM and aftermarket parts across three markets — built for garages that need the rare part, not just the easy one.</p>
+          <div className="lp-hero-cta">
+            <button className="lp-btn fill" onClick={() => setView("garage")}>Submit a Request</button>
+            <button className="lp-btn ghost" onClick={() => setView("track")}>Track an Order</button>
           </div>
-          <div className="sx-scroll-cue"></div>
-        </div>
-
-        {/* TICKER */}
-        <div className="sx-ticker-wrap">
-          <div className="sx-ticker">
-            <span className="hl">● LIVE</span><span>LONDON — SOURCING</span><span>DUBAI — IN TRANSIT</span><span>LAGOS — DELIVERED</span><span className="hl">48H AVG TURNAROUND</span><span>OEM &amp; AFTERMARKET</span>
-            <span className="hl">● LIVE</span><span>LONDON — SOURCING</span><span>DUBAI — IN TRANSIT</span><span>LAGOS — DELIVERED</span><span className="hl">48H AVG TURNAROUND</span><span>OEM &amp; AFTERMARKET</span>
-          </div>
-        </div>
-
-        {/* CAR GALLERY */}
-        <div className="sx-section" style={{minHeight:"auto", padding:"5rem 2rem"}}>
-          <div className="sx-section-num">— THE CARS</div>
-          <div className="sx-section-title">EVERY MARQUE.<br/>EVERY <span>ERA</span>.</div>
-          <div className="sx-gallery">
-            <div className="sx-gallery-item" style={{backgroundImage:"url(https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80)"}}>
-              <span className="sx-gallery-label">Rolls-Royce</span>
-            </div>
-            <div className="sx-gallery-item" style={{backgroundImage:"url(https://images.unsplash.com/photo-1592198084033-aade902d1aae?w=800&q=80)"}}>
-              <span className="sx-gallery-label">Ferrari</span>
-            </div>
-            <div className="sx-gallery-item" style={{backgroundImage:"url(https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80)"}}>
-              <span className="sx-gallery-label">Mercedes-Benz</span>
-            </div>
-            <div className="sx-gallery-item" style={{backgroundImage:"url(https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80)"}}>
-              <span className="sx-gallery-label">Porsche</span>
+          <div className="lp-walker-wrap">
+            <div className="lp-walker">
+              <svg className="lp-car-svg" viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="2,16 4,9 11,9 15,4 29,4 33,9 40,9 42,16" />
+                <line x1="2" y1="16" x2="5" y2="16" />
+                <line x1="13" y1="16" x2="28" y2="16" />
+                <line x1="36" y1="16" x2="42" y2="16" />
+                <g className="lp-wheel-f"><circle cx="9" cy="18" r="4" /><line x1="9" y1="14" x2="9" y2="22" /><line x1="5" y1="18" x2="13" y2="18" /></g>
+                <g className="lp-wheel-r"><circle cx="32" cy="18" r="4" /><line x1="32" y1="14" x2="32" y2="22" /><line x1="28" y1="18" x2="36" y2="18" /></g>
+              </svg>
             </div>
           </div>
         </div>
 
-        {/* QUOTE SECTION */}
-        <div className="sx-section" style={{minHeight:"60vh"}}>
-          <div className="sx-section-num">— IN THEIR WORDS</div>
-          <div className="sx-quote-grid">
-            <div className="sx-quote-card">
-              <p className="sx-quote-text">"I could not find the car of my dreams, so I built it."</p>
-              <p className="sx-quote-author">— Ferdinand Porsche</p>
-            </div>
-            <div className="sx-quote-card">
-              <p className="sx-quote-text">"Aerodynamics are for people who can't build engines."</p>
-              <p className="sx-quote-author">— Enzo Ferrari</p>
-            </div>
-            <div className="sx-quote-card">
-              <p className="sx-quote-text">"Quality means doing it right when no one is looking."</p>
-              <p className="sx-quote-author">— Henry Ford</p>
-            </div>
+        {/* MANIFESTO */}
+        <div className="lp-manifesto reveal">
+          <div className="lp-manifesto-label">manifesto</div>
+          <div className="lp-manifesto-text">
+            We don't treat sourcing as a commodity.<br/>
+            <span className="dim">Every part has a story — where it came from, who needs it, why it matters.</span><br/>
+            We find it properly, or we don't take the job.
           </div>
         </div>
 
-        {/* STATS SECTION */}
-        <div className="sx-section">
-          <div className="sx-section-num">01 / NETWORK</div>
-          <div className="sx-section-title">THREE MARKETS.<br/>ONE <span>SUPPLY CHAIN</span>.</div>
-          <div className="sx-section-sub">Every rare part has a route. We know the network that finds it.</div>
-          <div className="sx-stats-row">
-            <div className="sx-stat"><div className="sx-stat-num">{countries}</div><div className="sx-stat-lbl">Countries</div></div>
-            <div className="sx-stat"><div className="sx-stat-num">{hours}h</div><div className="sx-stat-lbl">Avg. Turnaround</div></div>
-            <div className="sx-stat"><div className="sx-stat-num">OEM</div><div className="sx-stat-lbl">&amp; Aftermarket</div></div>
+        {/* SERVICES */}
+        <div className="lp-services">
+          <div className="lp-services-heading reveal">how we can help</div>
+
+          <div className="lp-service-row reveal" onClick={() => setView("garage")}>
+            <div className="lp-service-num">001</div>
+            <div className="lp-service-body">
+              <h3>Garage Portal</h3>
+              <p>Submit part requests, upload VIN plates or reference photos, and get a quote within 48 hours.</p>
+              <div className="lp-service-link">Open Portal</div>
+            </div>
+            <div className="lp-service-tags">
+              <span className="lp-service-tag">VIN UPLOAD</span>
+              <span className="lp-service-tag">PHOTO REFERENCE</span>
+              <span className="lp-service-tag">48H QUOTE</span>
+            </div>
           </div>
-        </div>
 
-        {/* SERVICES SECTION */}
-        <div className="sx-section">
-          <div className="sx-section-num">02 / SERVICES</div>
-          <div className="sx-section-title">THREE WAYS <span>IN</span>.</div>
-          <div className="sx-services" style={{marginTop:"3rem"}}>
-
-            <div className="sx-service-row" onClick={() => setView("garage")}>
-              <div>
-                <div className="sx-service-num">GARAGE PORTAL</div>
-                <div className="sx-service-title">Submit a part request</div>
-                <div className="sx-service-desc">Upload VIN plates or reference photos. We source it from London, Dubai, or Lagos — whichever route gets it to you fastest.</div>
-                <div className="sx-service-link">Open Portal</div>
-              </div>
-              <div className="sx-service-visual">🔧</div>
+          <div className="lp-service-row reveal" onClick={() => setView("stories")}>
+            <div className="lp-service-num">002</div>
+            <div className="lp-service-body">
+              <h3>Sourcing Stories</h3>
+              <p>Real jobs, rare parts, and how we tracked them down across London, Dubai, and Lagos.</p>
+              <div className="lp-service-link">Read Stories</div>
             </div>
-
-            <div className="sx-service-row" onClick={() => setView("stories")}>
-              <div>
-                <div className="sx-service-num">SOURCING STORIES</div>
-                <div className="sx-service-title">Real jobs. Rare parts.</div>
-                <div className="sx-service-desc">Behind every order is a hunt — dead ends, long-shot contacts, and the moment the right part finally surfaces.</div>
-                <div className="sx-service-link">Read Stories</div>
-              </div>
-              <div className="sx-service-visual">📖</div>
+            <div className="lp-service-tags">
+              <span className="lp-service-tag">CASE STUDIES</span>
+              <span className="lp-service-tag">REAL ORDERS</span>
             </div>
+          </div>
 
-            <div className="sx-service-row" onClick={() => setView("track")}>
-              <div>
-                <div className="sx-service-num">ORDER TRACKING</div>
-                <div className="sx-service-title">Track your order</div>
-                <div className="sx-service-desc">Enter your Order ID to see live status — pending, quoted, sourcing, or fulfilled.</div>
-                <div className="sx-service-link">Track Now</div>
-              </div>
-              <div className="sx-service-visual">📍</div>
+          <div className="lp-service-row reveal" onClick={() => setView("track")}>
+            <div className="lp-service-num">003</div>
+            <div className="lp-service-body">
+              <h3>Track Your Order</h3>
+              <p>Enter your Order ID and see exactly where your part is — pending, quoted, sourcing, or fulfilled.</p>
+              <div className="lp-service-link">Track Now</div>
             </div>
-
+            <div className="lp-service-tags">
+              <span className="lp-service-tag">LIVE STATUS</span>
+              <span className="lp-service-tag">NO LOGIN</span>
+            </div>
           </div>
 
           {isAdminDevice && (
-            <div className="sx-pw-box">
-              <input className="sx-pw-input" type="password" placeholder="Admin password…" value={adminPw}
+            <div className="lp-admin-box">
+              <input className="lp-pw-input" type="password" placeholder="Admin password…" value={adminPw}
                 onChange={e => { setAdminPw(e.target.value); setPwError(false); }}
                 onKeyDown={e => e.key === "Enter" && enterAdmin()} />
-              <button className="sx-btn fill" style={{width:"100%"}} onClick={enterAdmin}>Enter Admin →</button>
-              {pwError && <div className="sx-pw-error">Incorrect password</div>}
+              <button className="lp-btn fill" style={{width:"100%"}} onClick={enterAdmin}>Enter Admin →</button>
+              {pwError && <div className="lp-pw-error">Incorrect password</div>}
             </div>
           )}
         </div>
 
-        {/* CONTACT SECTION */}
-        <div className="sx-section" style={{borderBottom:"none"}}>
-          <div className="sx-section-num">03 / CONTACT</div>
-          <div className="sx-section-title">TALK TO <span>US</span>.</div>
-          <div className="sx-section-sub">WhatsApp is the fastest way to reach us, wherever you are.</div>
-          <div className="sx-contact">
-            <a className="sx-wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
+        {/* PROCESS */}
+        <div className="lp-process">
+          <div className="lp-process-heading reveal">the process</div>
+          <div className="lp-process-grid reveal stagger">
+            <div>
+              <div className="lp-process-num">1</div>
+              <div className="lp-process-title">Submit the request</div>
+              <div className="lp-process-desc">Tell us the part, the car, and upload a reference photo if you have one.</div>
+            </div>
+            <div>
+              <div className="lp-process-num">2</div>
+              <div className="lp-process-title">We source it</div>
+              <div className="lp-process-desc">We check our network across London, Dubai, and Lagos for the fastest route.</div>
+            </div>
+            <div>
+              <div className="lp-process-num">3</div>
+              <div className="lp-process-title">You get a quote</div>
+              <div className="lp-process-desc">Usually within 48 hours — OEM or aftermarket, your choice.</div>
+            </div>
+            <div>
+              <div className="lp-process-num">4</div>
+              <div className="lp-process-title">Delivered</div>
+              <div className="lp-process-desc">Track it the whole way, right up to your garage door.</div>
+            </div>
+          </div>
+        </div>
+
+        {/* TESTIMONIALS */}
+        <div className="lp-testimonials">
+          <div className="lp-test-heading reveal">what garages say</div>
+          <div className="lp-test-grid reveal stagger">
+            <div className="lp-test-card">
+              <p className="lp-test-text">"Needed a part nobody in Lagos stocked. Had it sourced from the UK in under two weeks."</p>
+              <div className="lp-test-name">Workshop Owner</div>
+              <div className="lp-test-role">Victoria Island, Lagos</div>
+            </div>
+            <div className="lp-test-card">
+              <p className="lp-test-text">"Quick responses, fair quotes, and they actually find the rare stuff other suppliers give up on."</p>
+              <div className="lp-test-name">Garage Manager</div>
+              <div className="lp-test-role">Lekki, Lagos</div>
+            </div>
+            <div className="lp-test-card">
+              <p className="lp-test-text">"Tracked our order the whole way through. No chasing, no guessing — just knew where it was."</p>
+              <div className="lp-test-name">Fleet Operator</div>
+              <div className="lp-test-role">Ikeja, Lagos</div>
+            </div>
+          </div>
+        </div>
+
+        {/* CONTACT */}
+        <div className="lp-contact reveal">
+          <div className="lp-contact-eyebrow">contact</div>
+          <div className="lp-contact-title">Talk to us on WhatsApp.</div>
+          <div className="lp-wa-row">
+            <a className="lp-wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
               <span>💬</span>
-              <div><div className="sx-wa-region">London</div><div className="sx-wa-number">+44 7494 806066</div></div>
+              <div><div className="lp-wa-region">London</div><div className="lp-wa-number">+44 7494 806066</div></div>
             </a>
-            <a className="sx-wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
+            <a className="lp-wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
               <span>💬</span>
-              <div><div className="sx-wa-region">Lagos</div><div className="sx-wa-number">+234 9168 340653</div></div>
+              <div><div className="lp-wa-region">Lagos</div><div className="lp-wa-number">+234 9168 340653</div></div>
             </a>
-            <a className="sx-wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
+            <a className="lp-wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
               <span>💬</span>
-              <div><div className="sx-wa-region">Dubai</div><div className="sx-wa-number">+971 557 997247</div></div>
+              <div><div className="lp-wa-region">Dubai</div><div className="lp-wa-number">+971 557 997247</div></div>
             </a>
           </div>
         </div>
 
-        <div className="sx-footer">SPARESANYWHERE © {new Date().getFullYear()} — LONDON · DUBAI · LAGOS</div>
+        <div className="lp-footer">SPARESANYWHERE © {new Date().getFullYear()} — LONDON · DUBAI · LAGOS</div>
 
       </div>
     </>
