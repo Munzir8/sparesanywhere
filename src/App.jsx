@@ -185,7 +185,7 @@ export default function App() {
         .v-hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem; }
         .v-hero-bg { position:absolute; inset:0; background-image:linear-gradient(rgba(10,10,12,0.55), rgba(10,10,12,0.7)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1600&q=80'); background-size:cover; background-position:center; }
         .v-hero-content { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; animation:vfadeUp 0.9s ease both; }
-        .v-hero-name { font-size:clamp(2.4rem,8vw,5.5rem); font-weight:800; letter-spacing:-0.03em; color:#fff; line-height:1; }
+        .v-hero-name { font-size:clamp(1.5rem,7vw,5.5rem); font-weight:800; letter-spacing:-0.03em; color:#fff; line-height:1; max-width:100%; white-space:nowrap; }
         .v-hero-name span { color:#C9A84C; }
         .v-hero-tag { font-family:'DM Mono',monospace; font-size:0.95rem; color:rgba(255,255,255,0.8); letter-spacing:0.1em; margin-top:1.25rem; text-transform:uppercase; }
         .v-walker-wrap { position:relative; height:26px; margin:1.5rem 0 0; overflow:visible; width:240px; }
