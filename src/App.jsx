@@ -207,113 +207,98 @@ export default function App() {
   return (
     <>
       <style>{FONT}{BASE}{`
-        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes shimmer { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+        @keyframes twinkle { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
+        @keyframes shootAcross { 0%{transform:translate(0,0) rotate(-35deg); opacity:0;} 5%{opacity:1;} 22%{opacity:0;} 100%{transform:translate(600px,500px) rotate(-35deg); opacity:0;} }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
         @keyframes carDrive { 0%{left:0;transform:scaleX(1);} 47%{left:calc(100% - 44px);transform:scaleX(1);} 50%{left:calc(100% - 44px);transform:scaleX(-1);} 97%{left:0;transform:scaleX(-1);} 100%{left:0;transform:scaleX(1);} }
         @keyframes carBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-1px);} }
         @keyframes wheelSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-        @keyframes floatSlow { 0%,100%{transform:translateY(0px);} 50%{transform:translateY(-14px);} }
-        @keyframes glowPulse { 0%,100%{opacity:0.15;} 50%{opacity:0.35;} }
-        @keyframes marqueeScroll { from{transform:translateX(0);} to{transform:translateX(-50%);} }
-        @keyframes twinkle { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
-        @keyframes shootAcross { 0%{transform:translate(0,0) rotate(-35deg); opacity:0;} 5%{opacity:1;} 22%{opacity:0;} 100%{transform:translate(600px,500px) rotate(-35deg); opacity:0;} }
+        @keyframes tickerScroll { from{transform:translateX(0);} to{transform:translateX(-50%);} }
 
-        .stars-far { position:absolute; top:0; left:0; width:1.5px; height:1.5px; border-radius:50%; background:transparent; pointer-events:none; animation:twinkle 6s ease-in-out infinite; opacity:0.6; }
-        .stars-mid { position:absolute; top:0; left:0; width:2px; height:2px; border-radius:50%; background:transparent; pointer-events:none; animation:twinkle 4.5s ease-in-out infinite; opacity:0.85; animation-delay:0.5s; }
-        .stars-near { position:absolute; top:0; left:0; width:3px; height:3px; border-radius:50%; background:transparent; pointer-events:none; animation:twinkle 3s ease-in-out infinite; opacity:1; }
+        html { scroll-behavior:smooth; }
+        .sx-wrap { width:100%; background:#000; font-family:'Syne',sans-serif; overflow-x:hidden; position:relative; color:#F5F0E8; }
 
-        .shooting-star { position:absolute; top:0; left:0; width:3px; height:3px; background:#fff; border-radius:50%; box-shadow:0 0 12px 3px rgba(255,255,255,1); pointer-events:none; z-index:2; }
+        .stars-far, .stars-mid, .stars-near { position:absolute; top:0; left:0; width:2px; height:2px; border-radius:50%; background:transparent; pointer-events:none; z-index:0; }
+        .stars-far { animation:twinkle 6s ease-in-out infinite; opacity:0.5; }
+        .stars-mid { animation:twinkle 4.5s ease-in-out infinite; opacity:0.75; animation-delay:0.5s; }
+        .stars-near { animation:twinkle 3s ease-in-out infinite; opacity:1; width:3px; height:3px; }
+        .shooting-star { position:absolute; top:0; left:0; width:3px; height:3px; background:#fff; border-radius:50%; box-shadow:0 0 12px 3px rgba(255,255,255,1); pointer-events:none; z-index:1; }
         .shooting-star::before { content:''; position:absolute; top:1px; left:0; width:110px; height:2px; background:linear-gradient(to left, rgba(255,255,255,0.9), transparent); transform:translateX(-108px); }
         .shooting-star.s1 { top:8%; left:10%; animation:shootAcross 6s linear infinite; animation-delay:0.5s; }
         .shooting-star.s2 { top:18%; left:50%; animation:shootAcross 8s linear infinite; animation-delay:3s; }
         .shooting-star.s3 { top:35%; left:75%; animation:shootAcross 7s linear infinite; animation-delay:5.5s; }
-        html { scroll-behavior:smooth; }
-        .walker-wrap { position:relative; height:28px; margin:0.3rem auto 0.1rem; overflow:visible; width:min(400px, 90vw); }
-        .walker { position:absolute; top:0; left:0; animation:carDrive 10s linear infinite; }
-        .car-svg { animation:carBob 0.8s ease-in-out infinite; overflow:visible; }
-        .wheel-f { animation:wheelSpin 1.5s linear infinite; transform-origin:9px 18px; }
-        .wheel-r { animation:wheelSpin 1.5s linear infinite; transform-origin:32px 18px; }
 
-        .reveal { opacity:0; transform:translateY(40px); transition:opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1); }
-        .reveal.revealed { opacity:1; transform:translateY(0); }
-        .reveal.r-left { transform:translateX(-50px); }
-        .reveal.r-left.revealed { transform:translateX(0); }
-        .reveal.r-right { transform:translateX(50px); }
-        .reveal.r-right.revealed { transform:translateX(0); }
-        .reveal.r-scale { transform:scale(0.9); }
-        .reveal.r-scale.revealed { transform:scale(1); }
-        .stagger > * { transition-delay:0ms; }
-        .stagger.revealed > *:nth-child(1){transition-delay:0ms;}
-        .stagger.revealed > *:nth-child(2){transition-delay:90ms;}
-        .stagger.revealed > *:nth-child(3){transition-delay:180ms;}
-        .stagger.revealed > *:nth-child(4){transition-delay:270ms;}
+        /* TOP NAV — minimal, SpaceX style */
+        .sx-nav { position:fixed; top:0; left:0; right:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:1.5rem 2.5rem; mix-blend-mode:difference; }
+        .sx-logo { font-size:1rem; font-weight:800; letter-spacing:0.05em; color:#fff; }
+        .sx-logo span { color:#C9A84C; }
+        .sx-menu-dots { display:flex; gap:4px; cursor:pointer; }
+        .sx-menu-dots div { width:4px; height:4px; border-radius:50%; background:#fff; }
 
-        .home-wrap { width:100%; background:#171717; font-family:'Syne',sans-serif; overflow-x:hidden; position:relative; }
-        .home-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:1400px; background:radial-gradient(ellipse 90% 60% at 50% 0%, rgba(130,70,200,0.28), transparent 65%); pointer-events:none; z-index:0; }
-        .stars-far, .stars-mid, .stars-near { z-index:0; }
+        /* HERO — full bleed, huge type */
+        .sx-hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem; z-index:1; }
+        .sx-hero-eyebrow { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.3em; text-transform:uppercase; color:#C9A84C; margin-bottom:1.5rem; animation:fadeUp 0.8s ease both; }
+        .sx-hero-title { font-size:clamp(3rem,11vw,8.5rem); font-weight:800; line-height:0.95; letter-spacing:-0.02em; color:#fff; animation:fadeUp 0.9s 0.1s ease both; }
+        .sx-hero-title span { color:#C9A84C; }
+        .sx-hero-sub { font-family:'DM Mono',monospace; font-size:0.85rem; color:#999; letter-spacing:0.1em; text-transform:uppercase; margin-top:1.5rem; animation:fadeUp 0.9s 0.25s ease both; }
+        .sx-hero-cta { margin-top:2.5rem; display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; animation:fadeUp 0.9s 0.4s ease both; }
+        .sx-btn { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; padding:0.9rem 2rem; border-radius:1px; cursor:pointer; transition:all 0.25s; border:1px solid #C9A84C; }
+        .sx-btn.fill { background:#C9A84C; color:#000; }
+        .sx-btn.fill:hover { background:#fff; border-color:#fff; }
+        .sx-btn.ghost { background:transparent; color:#fff; }
+        .sx-btn.ghost:hover { background:rgba(255,255,255,0.08); }
 
-        .glow { position:absolute; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(201,168,76,0.5) 0%, transparent 70%); filter:blur(40px); pointer-events:none; animation:glowPulse 6s ease-in-out infinite; }
+        .sx-scroll-cue { position:absolute; bottom:2.5rem; left:50%; transform:translateX(-50%); width:1px; height:50px; background:linear-gradient(to bottom, #C9A84C, transparent); z-index:1; }
 
+        /* TICKER — bottom info bar, SpaceX live-data style */
+        .sx-ticker-wrap { border-top:1px solid #2C2C2C; border-bottom:1px solid #2C2C2C; background:#0A0A0A; padding:1rem 0; overflow:hidden; position:relative; z-index:1; }
+        .sx-ticker { display:inline-flex; white-space:nowrap; animation:tickerScroll 22s linear infinite; }
+        .sx-ticker span { font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.15em; color:#9A9A9A; margin:0 1.5rem; text-transform:uppercase; }
+        .sx-ticker span.hl { color:#C9A84C; }
 
-        .marquee-wrap { overflow:hidden; border-top:1px solid #2C2C2C; border-bottom:1px solid #2C2C2C; padding:1.1rem 0; background:#1C1C1C; position:relative; z-index:1; }
-        .marquee-track { display:inline-flex; white-space:nowrap; animation:marqueeScroll 28s linear infinite; }
-        .marquee-track span { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.2em; color:#888888; margin:0 1.25rem; }
-        .marquee-track span:nth-of-type(even) { color:#C9A84C; opacity:0.6; }
+        /* FULL-BLEED SECTIONS */
+        .sx-section { position:relative; min-height:90vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:5rem 2rem; z-index:1; border-bottom:1px solid #1A1A1A; }
+        .sx-section-num { font-family:'DM Mono',monospace; font-size:0.7rem; color:#666666; letter-spacing:0.2em; margin-bottom:1.25rem; }
+        .sx-section-title { font-size:clamp(2.2rem,7vw,5rem); font-weight:800; color:#fff; line-height:1; letter-spacing:-0.02em; text-align:center; max-width:900px; }
+        .sx-section-title span { color:#C9A84C; }
+        .sx-section-sub { font-family:'DM Mono',monospace; font-size:0.85rem; color:#9A9A9A; max-width:560px; text-align:center; margin-top:1.5rem; line-height:1.8; }
+        .sx-section-action { margin-top:2.5rem; }
 
-        .hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem; z-index:1; }
-        .brand { text-align:center; animation:fadeUp 0.6s ease both; position:relative; z-index:1; }
-        .logo { font-size:clamp(1.8rem,6vw,3.5rem); font-weight:800; color:#F5F0E8; letter-spacing:-0.03em; margin-bottom:0.25rem; }
-        .logo > span:first-of-type { color:#C9A84C; animation:shimmer 4s ease-in-out infinite; display:inline-block; }
-        .logo-bar { width:2rem; height:1px; background:#C9A84C; margin:0.6rem auto; opacity:0.5; }
-        .sub { font-family:'DM Mono',monospace; font-size:0.75rem; color:#9A9A9A; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:0.75rem; }
-        .tagline { font-family:'DM Mono',monospace; font-size:0.72rem; color:#C0392B; letter-spacing:0.05em; margin-bottom:1.5rem; }
-        .scroll-cue { position:absolute; bottom:2.5rem; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:0.5rem; animation:floatSlow 2.4s ease-in-out infinite; opacity:0.5; z-index:1; }
-        .scroll-cue-lbl { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:#AAAAAA; }
-        .scroll-cue-line { width:1px; height:28px; background:linear-gradient(to bottom, #C9A84C, transparent); }
+        .sx-stats-row { display:flex; gap:4rem; flex-wrap:wrap; justify-content:center; margin-top:3.5rem; }
+        .sx-stat { text-align:center; }
+        .sx-stat-num { font-size:clamp(2rem,5vw,3.5rem); font-weight:800; color:#C9A84C; letter-spacing:-0.02em; }
+        .sx-stat-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#9A9A9A; letter-spacing:0.15em; text-transform:uppercase; margin-top:0.5rem; }
 
-        .section { padding:6rem 2rem; position:relative; z-index:1; }
-        .section-inner { max-width:900px; margin:0 auto; }
+        /* SERVICE BLOCKS — full width alternating */
+        .sx-services { width:100%; max-width:1100px; }
+        .sx-service-row { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; padding:4rem 0; border-bottom:1px solid #1A1A1A; }
+        @media(max-width:760px){ .sx-service-row { grid-template-columns:1fr; gap:1.5rem; } }
+        .sx-service-row:last-child { border-bottom:none; }
+        .sx-service-num { font-family:'DM Mono',monospace; font-size:0.7rem; color:#C9A84C; letter-spacing:0.2em; margin-bottom:1rem; }
+        .sx-service-title { font-size:clamp(1.5rem,3.5vw,2.4rem); font-weight:800; color:#fff; line-height:1.1; margin-bottom:1rem; cursor:pointer; transition:color 0.2s; }
+        .sx-service-title:hover { color:#C9A84C; }
+        .sx-service-desc { font-family:'DM Mono',monospace; font-size:0.82rem; color:#9A9A9A; line-height:1.8; margin-bottom:1.5rem; }
+        .sx-service-link { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:#C9A84C; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+        .sx-service-link::after { content:'→'; transition:transform 0.2s; }
+        .sx-service-row:hover .sx-service-link::after { transform:translateX(6px); }
+        .sx-service-visual { aspect-ratio:4/3; background:#0F0F0F; border:1px solid #2C2C2C; border-radius:2px; display:flex; align-items:center; justify-content:center; font-size:3.5rem; position:relative; overflow:hidden; cursor:pointer; }
+        .sx-service-visual::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 50%, rgba(201,168,76,0.12), transparent 70%); }
 
-        .stats { display:flex; gap:2rem; justify-content:center; flex-wrap:wrap; }
-        .stat { text-align:center; }
-        .stat-num { font-size:2.2rem; font-weight:800; color:#C9A84C; letter-spacing:-0.02em; }
-        .stat-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#9A9A9A; letter-spacing:0.1em; text-transform:uppercase; margin-top:0.3rem; }
-        .stat-div { width:1px; background:#1E1E1E; align-self:stretch; }
+        .sx-pw-box { margin-top:2rem; max-width:280px; width:100%; }
+        .sx-pw-input { width:100%; background:#0A0A0A; border:1px solid #4A4A4A; color:#fff; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.7rem 1rem; border-radius:1px; outline:none; margin-bottom:0.5rem; }
+        .sx-pw-input:focus { border-color:#C9A84C; }
+        .sx-pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#EF4444; margin-top:0.4rem; }
 
-        .section-eyebrow { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase; color:#C9A84C; text-align:center; margin-bottom:1rem; }
-        .section-title { font-family:'Playfair Display',serif; font-size:clamp(1.6rem,4vw,2.4rem); font-weight:500; color:#F5F0E8; text-align:center; margin-bottom:3rem; letter-spacing:-0.5px; }
+        .sx-contact { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; margin-top:2.5rem; }
+        .sx-wa-btn { display:flex; align-items:center; gap:0.6rem; background:#0F0F0F; border:1px solid #2C2C2C; border-radius:2px; padding:0.75rem 1.5rem; text-decoration:none; transition:all 0.2s; }
+        .sx-wa-btn:hover { border-color:#25D366; background:#0D1A10; transform:translateY(-2px); }
+        .sx-wa-region { font-family:'DM Mono',monospace; font-size:0.6rem; color:#9A9A9A; letter-spacing:0.1em; text-transform:uppercase; }
+        .sx-wa-number { font-family:'DM Mono',monospace; font-size:0.78rem; color:#fff; }
 
-        .cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1.5rem; width:100%; }
-        @media(max-width:520px){.cards{grid-template-columns:1fr;}}
-        .card { border:1px solid #3A3A3A; border-radius:2px; padding:2.5rem 2rem; background:#222222; transition:border-color 0.3s, background 0.3s, transform 0.3s; }
-        .card.clickable { cursor:pointer; }
-        .card.clickable:hover { border-color:#C9A84C; background:#141414; transform:translateY(-4px); }
-        .card-icon { font-size:2rem; margin-bottom:1rem; transition:transform 0.3s; }
-        .card.clickable:hover .card-icon { transform:scale(1.15) rotate(-4deg); }
-        .card-title { font-size:1.25rem; font-weight:700; color:#F5F0E8; margin-bottom:0.5rem; }
-        .card-desc { font-family:'DM Mono',monospace; font-size:0.72rem; color:#AAAAAA; line-height:1.6; margin-bottom:1.25rem; }
-        .pw-input { width:100%; background:#171717; border:1px solid #4A4A4A; color:#F5F0E8; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.6rem 1rem; border-radius:2px; outline:none; margin-bottom:0.5rem; }
-        .pw-input:focus { border-color:#C9A84C; }
-        .pw-btn { width:100%; background:#C9A84C; color:#171717; border:none; font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.05em; padding:0.65rem; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
-        .pw-btn:hover { opacity:0.85; }
-        .pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#EF4444; margin-top:0.4rem; }
-
-        .route-row { display:flex; align-items:center; justify-content:center; gap:1.5rem; flex-wrap:wrap; margin-bottom:1rem; }
-        .route-city { font-family:'Playfair Display',serif; font-size:1.4rem; color:#F5F0E8; font-weight:500; }
-        .route-arrow { color:#C9A84C; font-size:1.2rem; }
-        .route-sub { text-align:center; font-family:'DM Mono',monospace; font-size:0.72rem; color:#9A9A9A; letter-spacing:0.05em; }
-
-        .contact { text-align:center; padding-bottom:5rem; }
-        .contact-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#888888; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:1rem; }
-        .wa-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
-        .wa-btn { display:flex; align-items:center; gap:0.5rem; background:#222222; border:1px solid #3A3A3A; border-radius:2px; padding:0.65rem 1.25rem; text-decoration:none; transition:all 0.2s; }
-        .wa-btn:hover { border-color:#25D366; background:#0D1A10; transform:translateY(-2px); }
-        .wa-icon { font-size:1rem; }
-        .wa-info { text-align:left; }
-        .wa-region { font-family:'DM Mono',monospace; font-size:0.6rem; color:#9A9A9A; letter-spacing:0.1em; text-transform:uppercase; }
-        .wa-number { font-family:'DM Mono',monospace; font-size:0.78rem; color:#F5F0E8; }
+        .sx-footer { padding:3rem 2rem; text-align:center; font-family:'DM Mono',monospace; font-size:0.65rem; color:#666666; letter-spacing:0.1em; }
       `}</style>
-      <div className="home-wrap">
+
+      <div className="sx-wrap">
         <div className="stars-far" style={{boxShadow: stars.far}}></div>
         <div className="stars-mid" style={{boxShadow: stars.mid}}></div>
         <div className="stars-near" style={{boxShadow: stars.near}}></div>
@@ -321,134 +306,115 @@ export default function App() {
         <div className="shooting-star s2"></div>
         <div className="shooting-star s3"></div>
 
+        {/* NAV */}
+        <nav className="sx-nav">
+          <div className="sx-logo">SPARES<span>ANYWHERE</span></div>
+          <div className="sx-menu-dots"><div></div><div></div><div></div></div>
+        </nav>
+
         {/* HERO */}
-        <div className="hero">
-          <div className="glow glow-1" style={{top:"10%", left:"15%"}}></div>
-          <div className="glow glow-2" style={{bottom:"5%", right:"10%", animationDelay:"2s"}}></div>
-          <div className="brand">
-            <div className="logo">SPARES<span>ANYWHERE</span></div>
-            <div className="walker-wrap">
-              <div className="walker">
-                <svg className="car-svg" viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="2,16 4,9 11,9 15,4 29,4 33,9 40,9 42,16" />
-                  <line x1="2" y1="16" x2="5" y2="16" />
-                  <line x1="13" y1="16" x2="28" y2="16" />
-                  <line x1="36" y1="16" x2="42" y2="16" />
-                  <g className="wheel-f">
-                    <circle cx="9" cy="18" r="4" />
-                    <line x1="9" y1="14" x2="9" y2="22" />
-                    <line x1="5" y1="18" x2="13" y2="18" />
-                  </g>
-                  <g className="wheel-r">
-                    <circle cx="32" cy="18" r="4" />
-                    <line x1="32" y1="14" x2="32" y2="22" />
-                    <line x1="28" y1="18" x2="36" y2="18" />
-                  </g>
-                  <circle cx="41" cy="12" r="1" fill="#C9A84C" />
-                </svg>
+        <div className="sx-hero">
+          <div className="sx-hero-eyebrow">Automotive Parts · London · Dubai · Lagos</div>
+          <h1 className="sx-hero-title">NO PART<br/>TOO <span>RARE</span>.</h1>
+          <div className="sx-hero-sub">No market too far.</div>
+          <div className="sx-hero-cta">
+            <button className="sx-btn fill" onClick={() => setView("garage")}>Submit a Request</button>
+            <button className="sx-btn ghost" onClick={() => setView("track")}>Track an Order</button>
+          </div>
+          <div className="sx-scroll-cue"></div>
+        </div>
+
+        {/* TICKER */}
+        <div className="sx-ticker-wrap">
+          <div className="sx-ticker">
+            <span className="hl">● LIVE</span><span>LONDON — SOURCING</span><span>DUBAI — IN TRANSIT</span><span>LAGOS — DELIVERED</span><span className="hl">48H AVG TURNAROUND</span><span>OEM &amp; AFTERMARKET</span>
+            <span className="hl">● LIVE</span><span>LONDON — SOURCING</span><span>DUBAI — IN TRANSIT</span><span>LAGOS — DELIVERED</span><span className="hl">48H AVG TURNAROUND</span><span>OEM &amp; AFTERMARKET</span>
+          </div>
+        </div>
+
+        {/* STATS SECTION */}
+        <div className="sx-section">
+          <div className="sx-section-num">01 / NETWORK</div>
+          <div className="sx-section-title">THREE MARKETS.<br/>ONE <span>SUPPLY CHAIN</span>.</div>
+          <div className="sx-section-sub">Every rare part has a route. We know the network that finds it.</div>
+          <div className="sx-stats-row">
+            <div className="sx-stat"><div className="sx-stat-num">{countries}</div><div className="sx-stat-lbl">Countries</div></div>
+            <div className="sx-stat"><div className="sx-stat-num">{hours}h</div><div className="sx-stat-lbl">Avg. Turnaround</div></div>
+            <div className="sx-stat"><div className="sx-stat-num">OEM</div><div className="sx-stat-lbl">&amp; Aftermarket</div></div>
+          </div>
+        </div>
+
+        {/* SERVICES SECTION */}
+        <div className="sx-section">
+          <div className="sx-section-num">02 / SERVICES</div>
+          <div className="sx-section-title">THREE WAYS <span>IN</span>.</div>
+          <div className="sx-services" style={{marginTop:"3rem"}}>
+
+            <div className="sx-service-row" onClick={() => setView("garage")}>
+              <div>
+                <div className="sx-service-num">GARAGE PORTAL</div>
+                <div className="sx-service-title">Submit a part request</div>
+                <div className="sx-service-desc">Upload VIN plates or reference photos. We source it from London, Dubai, or Lagos — whichever route gets it to you fastest.</div>
+                <div className="sx-service-link">Open Portal</div>
               </div>
+              <div className="sx-service-visual">🔧</div>
             </div>
-            <div className="logo-bar"></div>
-            <div className="sub">Automotive Parts</div>
-            <div className="sub" style={{marginBottom:"0.75rem"}}>London · Dubai · Lagos</div>
-            <div className="tagline">No part too rare. No market too far.</div>
-          </div>
-          <div className="scroll-cue">
-            <div className="scroll-cue-lbl">Scroll</div>
-            <div className="scroll-cue-line"></div>
-          </div>
-        </div>
 
-        {/* STATS */}
-        <div className="section">
-          <div className="section-inner reveal stagger count-trigger stats">
-            <div className="stat"><div className="stat-num">{countries}</div><div className="stat-lbl">Countries</div></div>
-            <div className="stat-div"></div>
-            <div className="stat"><div className="stat-num">{hours}h</div><div className="stat-lbl">Avg. Turnaround</div></div>
-            <div className="stat-div"></div>
-            <div className="stat"><div className="stat-num">OEM</div><div className="stat-lbl">& Aftermarket</div></div>
-          </div>
-        </div>
-
-        {/* MARQUEE */}
-        <div className="marquee-wrap">
-          <div className="marquee-track">
-            <span>ROLLS-ROYCE</span><span>•</span><span>MERCEDES-BENZ</span><span>•</span><span>BMW</span><span>•</span><span>FERRARI</span><span>•</span><span>TOYOTA</span><span>•</span><span>RANGE ROVER</span><span>•</span><span>PORSCHE</span><span>•</span>
-            <span>ROLLS-ROYCE</span><span>•</span><span>MERCEDES-BENZ</span><span>•</span><span>BMW</span><span>•</span><span>FERRARI</span><span>•</span><span>TOYOTA</span><span>•</span><span>RANGE ROVER</span><span>•</span><span>PORSCHE</span><span>•</span>
-          </div>
-        </div>
-
-        {/* ROUTE */}
-        <div className="section" style={{paddingTop:0}}>
-          <div className="section-inner reveal r-scale">
-            <div className="route-row">
-              <span className="route-city">London</span>
-              <span className="route-arrow">→</span>
-              <span className="route-city">Dubai</span>
-              <span className="route-arrow">→</span>
-              <span className="route-city">Lagos</span>
+            <div className="sx-service-row" onClick={() => setView("stories")}>
+              <div>
+                <div className="sx-service-num">SOURCING STORIES</div>
+                <div className="sx-service-title">Real jobs. Rare parts.</div>
+                <div className="sx-service-desc">Behind every order is a hunt — dead ends, long-shot contacts, and the moment the right part finally surfaces.</div>
+                <div className="sx-service-link">Read Stories</div>
+              </div>
+              <div className="sx-service-visual">📖</div>
             </div>
-            <div className="route-sub">Three markets. One supply chain. Every rare part has a route to find it.</div>
+
+            <div className="sx-service-row" onClick={() => setView("track")}>
+              <div>
+                <div className="sx-service-num">ORDER TRACKING</div>
+                <div className="sx-service-title">Track your order</div>
+                <div className="sx-service-desc">Enter your Order ID to see live status — pending, quoted, sourcing, or fulfilled.</div>
+                <div className="sx-service-link">Track Now</div>
+              </div>
+              <div className="sx-service-visual">📍</div>
+            </div>
+
+          </div>
+
+          {isAdminDevice && (
+            <div className="sx-pw-box">
+              <input className="sx-pw-input" type="password" placeholder="Admin password…" value={adminPw}
+                onChange={e => { setAdminPw(e.target.value); setPwError(false); }}
+                onKeyDown={e => e.key === "Enter" && enterAdmin()} />
+              <button className="sx-btn fill" style={{width:"100%"}} onClick={enterAdmin}>Enter Admin →</button>
+              {pwError && <div className="sx-pw-error">Incorrect password</div>}
+            </div>
+          )}
+        </div>
+
+        {/* CONTACT SECTION */}
+        <div className="sx-section" style={{borderBottom:"none"}}>
+          <div className="sx-section-num">03 / CONTACT</div>
+          <div className="sx-section-title">TALK TO <span>US</span>.</div>
+          <div className="sx-section-sub">WhatsApp is the fastest way to reach us, wherever you are.</div>
+          <div className="sx-contact">
+            <a className="sx-wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
+              <span>💬</span>
+              <div><div className="sx-wa-region">London</div><div className="sx-wa-number">+44 7494 806066</div></div>
+            </a>
+            <a className="sx-wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
+              <span>💬</span>
+              <div><div className="sx-wa-region">Lagos</div><div className="sx-wa-number">+234 9168 340653</div></div>
+            </a>
+            <a className="sx-wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
+              <span>💬</span>
+              <div><div className="sx-wa-region">Dubai</div><div className="sx-wa-number">+971 557 997247</div></div>
+            </a>
           </div>
         </div>
 
-        {/* SERVICES */}
-        <div className="section">
-          <div className="section-inner">
-            <div className="section-eyebrow reveal">What we do</div>
-            <div className="section-title reveal">Three ways in.</div>
-            <div className="cards reveal stagger">
-              <div className="card clickable" onClick={() => setView("garage")}>
-                <div className="card-icon">🔧</div>
-                <div className="card-title">Garage Portal</div>
-                <div className="card-desc">Submit part requests, upload VIN plates or reference photos, and track order status.</div>
-              </div>
-              <div className="card clickable" onClick={() => setView("stories")}>
-                <div className="card-icon">📖</div>
-                <div className="card-title">Sourcing Stories</div>
-                <div className="card-desc">Real jobs. Rare parts. How we found them.</div>
-              </div>
-              <div className="card clickable" onClick={() => setView("track")}>
-                <div className="card-icon">📍</div>
-                <div className="card-title">Track Your Order</div>
-                <div className="card-desc">Enter your Order ID to see live status.</div>
-              </div>
-              {isAdminDevice && (
-              <div className="card">
-                <div className="card-icon">📊</div>
-                <div className="card-title">Admin Dashboard</div>
-                <div className="card-desc">Manage orders, quotes, and sourcing stories.</div>
-                <input className="pw-input" type="password" placeholder="Enter password…" value={adminPw}
-                  onChange={e => { setAdminPw(e.target.value); setPwError(false); }}
-                  onKeyDown={e => e.key === "Enter" && enterAdmin()} />
-                <button className="pw-btn" onClick={enterAdmin}>ENTER →</button>
-                {pwError && <div className="pw-error">Incorrect password</div>}
-              </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* CONTACT */}
-        <div className="section contact">
-          <div className="reveal">
-            <div className="contact-lbl">Contact Us on WhatsApp</div>
-            <div className="wa-btns">
-              <a className="wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
-                <span className="wa-icon">💬</span>
-                <div className="wa-info"><div className="wa-region">London</div><div className="wa-number">+44 7494 806066</div></div>
-              </a>
-              <a className="wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
-                <span className="wa-icon">💬</span>
-                <div className="wa-info"><div className="wa-region">Lagos</div><div className="wa-number">+234 9168 340653</div></div>
-              </a>
-              <a className="wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
-                <span className="wa-icon">💬</span>
-                <div className="wa-info"><div className="wa-region">Dubai</div><div className="wa-number">+971 557 997247</div></div>
-              </a>
-            </div>
-          </div>
-        </div>
+        <div className="sx-footer">SPARESANYWHERE © {new Date().getFullYear()} — LONDON · DUBAI · LAGOS</div>
 
       </div>
     </>
