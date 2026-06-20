@@ -269,6 +269,21 @@ export default function App() {
         .sx-stat-num { font-size:clamp(2rem,5vw,3.5rem); font-weight:800; color:#C9A84C; letter-spacing:-0.02em; }
         .sx-stat-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:#9A9A9A; letter-spacing:0.15em; text-transform:uppercase; margin-top:0.5rem; }
 
+        /* CAR GALLERY */
+        .sx-gallery { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; max-width:1100px; width:100%; margin-top:3rem; }
+        @media(max-width:760px){ .sx-gallery { grid-template-columns:repeat(2,1fr); } }
+        .sx-gallery-item { aspect-ratio:3/4; background-size:cover; background-position:center; border-radius:2px; position:relative; overflow:hidden; border:1px solid #2C2C2C; transition:transform 0.3s; }
+        .sx-gallery-item:hover { transform:scale(1.03); }
+        .sx-gallery-item::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.85), transparent 50%); }
+        .sx-gallery-label { position:absolute; bottom:1rem; left:1rem; z-index:1; font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:#fff; }
+
+        /* QUOTES */
+        .sx-quote-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; max-width:1100px; width:100%; margin-top:2.5rem; }
+        @media(max-width:760px){ .sx-quote-grid { grid-template-columns:1fr; } }
+        .sx-quote-card { border:1px solid #2C2C2C; border-radius:2px; padding:2rem; background:#0F0F0F; }
+        .sx-quote-text { font-family:'Playfair Display',serif; font-style:italic; font-size:1.05rem; color:#F5F0E8; line-height:1.6; margin-bottom:1.25rem; }
+        .sx-quote-author { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:#C9A84C; }
+
         /* SERVICE BLOCKS — full width alternating */
         .sx-services { width:100%; max-width:1100px; }
         .sx-service-row { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; padding:4rem 0; border-bottom:1px solid #1A1A1A; }
@@ -314,9 +329,9 @@ export default function App() {
 
         {/* HERO */}
         <div className="sx-hero">
-          <div className="sx-hero-eyebrow">Automotive Parts · London · Dubai · Lagos</div>
-          <h1 className="sx-hero-title">NO PART<br/>TOO <span>RARE</span>.</h1>
-          <div className="sx-hero-sub">No market too far.</div>
+          <div className="sx-hero-eyebrow">Our Mission</div>
+          <h1 className="sx-hero-title">FIND ANY PART.<br/>ANY<span>WHERE</span>.</h1>
+          <div className="sx-hero-sub">Sourcing the world's rarest automotive parts — London, Dubai, Lagos.</div>
           <div className="sx-hero-cta">
             <button className="sx-btn fill" onClick={() => setView("garage")}>Submit a Request</button>
             <button className="sx-btn ghost" onClick={() => setView("track")}>Track an Order</button>
@@ -329,6 +344,45 @@ export default function App() {
           <div className="sx-ticker">
             <span className="hl">● LIVE</span><span>LONDON — SOURCING</span><span>DUBAI — IN TRANSIT</span><span>LAGOS — DELIVERED</span><span className="hl">48H AVG TURNAROUND</span><span>OEM &amp; AFTERMARKET</span>
             <span className="hl">● LIVE</span><span>LONDON — SOURCING</span><span>DUBAI — IN TRANSIT</span><span>LAGOS — DELIVERED</span><span className="hl">48H AVG TURNAROUND</span><span>OEM &amp; AFTERMARKET</span>
+          </div>
+        </div>
+
+        {/* CAR GALLERY */}
+        <div className="sx-section" style={{minHeight:"auto", padding:"5rem 2rem"}}>
+          <div className="sx-section-num">— THE CARS</div>
+          <div className="sx-section-title">EVERY MARQUE.<br/>EVERY <span>ERA</span>.</div>
+          <div className="sx-gallery">
+            <div className="sx-gallery-item" style={{backgroundImage:"url(https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80)"}}>
+              <span className="sx-gallery-label">Rolls-Royce</span>
+            </div>
+            <div className="sx-gallery-item" style={{backgroundImage:"url(https://images.unsplash.com/photo-1592198084033-aade902d1aae?w=800&q=80)"}}>
+              <span className="sx-gallery-label">Ferrari</span>
+            </div>
+            <div className="sx-gallery-item" style={{backgroundImage:"url(https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80)"}}>
+              <span className="sx-gallery-label">Mercedes-Benz</span>
+            </div>
+            <div className="sx-gallery-item" style={{backgroundImage:"url(https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80)"}}>
+              <span className="sx-gallery-label">Porsche</span>
+            </div>
+          </div>
+        </div>
+
+        {/* QUOTE SECTION */}
+        <div className="sx-section" style={{minHeight:"60vh"}}>
+          <div className="sx-section-num">— IN THEIR WORDS</div>
+          <div className="sx-quote-grid">
+            <div className="sx-quote-card">
+              <p className="sx-quote-text">"I could not find the car of my dreams, so I built it."</p>
+              <p className="sx-quote-author">— Ferdinand Porsche</p>
+            </div>
+            <div className="sx-quote-card">
+              <p className="sx-quote-text">"Aerodynamics are for people who can't build engines."</p>
+              <p className="sx-quote-author">— Enzo Ferrari</p>
+            </div>
+            <div className="sx-quote-card">
+              <p className="sx-quote-text">"Quality means doing it right when no one is looking."</p>
+              <p className="sx-quote-author">— Henry Ford</p>
+            </div>
           </div>
         </div>
 
