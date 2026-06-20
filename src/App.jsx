@@ -127,8 +127,25 @@ export default function App() {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("revealed"); });
     }, { threshold: 0.15 });
-    document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
+    document.querySelectorAll(".reveal, .v-reveal").forEach(el => obs.observe(el));
     return () => obs.disconnect();
+  }, [view]);
+
+  // Generate a starfield for the galactic homepage
+  const [stars, setStars] = useState({ near: "", mid: "", far: "" });
+  useEffect(() => {
+    if (view !== "home") return;
+    function genStars(count, color) {
+      const w = Math.max(window.innerWidth, 360);
+      let shadows = [];
+      for (let i = 0; i < count; i++) {
+        const x = Math.round(Math.random() * w);
+        const y = Math.round(Math.random() * 4000);
+        shadows.push(`${x}px ${y}px 0 ${color}`);
+      }
+      return shadows.join(",");
+    }
+    setStars({ near: genStars(110, "#FFFFFF"), mid: genStars(140, "#E8DCC0"), far: genStars(180, "#C9A84C") });
   }, [view]);
 
   function enterAdmin() {
@@ -144,279 +161,260 @@ export default function App() {
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
-        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+      <style>{FONT}{BASE}{`
+        @keyframes vfadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
         @keyframes carDrive { 0%{left:0;transform:scaleX(1);} 47%{left:calc(100% - 44px);transform:scaleX(1);} 50%{left:calc(100% - 44px);transform:scaleX(-1);} 97%{left:0;transform:scaleX(-1);} 100%{left:0;transform:scaleX(1);} }
         @keyframes carBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-1px);} }
         @keyframes wheelSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
         html { scroll-behavior:smooth; }
+        .v-wrap { width:100%; background:#fff; font-family:'Syne',sans-serif; color:#2A2A2A; overflow-x:hidden; }
 
-        .lp-wrap { width:100%; background:#F3EFE6; font-family:'Syne',sans-serif; color:#1A1A1A; overflow-x:hidden; }
-
-        .reveal { opacity:0; transform:translateY(28px); transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
-        .reveal.revealed { opacity:1; transform:translateY(0); }
-        .stagger.revealed > *:nth-child(1){transition-delay:0ms;}
-        .stagger.revealed > *:nth-child(2){transition-delay:100ms;}
-        .stagger.revealed > *:nth-child(3){transition-delay:200ms;}
+        .v-reveal { opacity:0; transform:translateY(28px); transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+        .v-reveal.revealed { opacity:1; transform:translateY(0); }
 
         /* NAV */
-        .lp-nav { position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:1.25rem 2.5rem; background:rgba(243,239,230,0.92); backdrop-filter:blur(8px); border-bottom:1px solid #E2DCC9; }
-        .lp-logo { font-size:1.05rem; font-weight:800; letter-spacing:-0.01em; color:#1A1A1A; }
-        .lp-logo span { color:#C9A84C; }
-        .lp-nav-links { display:flex; gap:2rem; }
-        .lp-nav-links a, .lp-nav-links button { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.05em; text-transform:uppercase; color:#5A5A52; background:none; border:none; cursor:pointer; transition:color 0.2s; }
-        .lp-nav-links a:hover, .lp-nav-links button:hover { color:#1A1A1A; }
-        @media(max-width:680px){ .lp-nav-links { display:none; } }
+        .v-nav { position:absolute; top:0; left:0; right:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:1.75rem 3rem; }
+        .v-nav-logo { font-size:1.15rem; font-weight:800; letter-spacing:-0.01em; color:#fff; }
+        .v-nav-logo span { color:#C9A84C; }
+        .v-nav-links { display:flex; gap:2.5rem; }
+        .v-nav-links button { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:#fff; background:none; border:none; cursor:pointer; transition:color 0.2s; opacity:0.85; }
+        .v-nav-links button:hover { color:#C9A84C; opacity:1; }
+        @media(max-width:680px){ .v-nav-links { gap:1.25rem; } .v-nav { padding:1.25rem 1.5rem; } }
 
-        /* HERO */
-        .lp-hero { padding:7rem 2.5rem 5rem; max-width:1100px; margin:0 auto; }
-        .lp-hero-eyebrow { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; margin-bottom:1.25rem; animation:fadeUp 0.7s ease both; }
-        .lp-hero-title { font-size:clamp(2.4rem,6vw,4.2rem); font-weight:700; line-height:1.05; letter-spacing:-0.02em; color:#1A1A1A; max-width:760px; animation:fadeUp 0.8s 0.1s ease both; }
-        .lp-hero-sub { font-family:'DM Mono',monospace; font-size:0.9rem; color:#6B6B60; max-width:520px; line-height:1.7; margin-top:1.5rem; animation:fadeUp 0.8s 0.2s ease both; }
-        .lp-hero-cta { display:flex; gap:1rem; margin-top:2.5rem; flex-wrap:wrap; animation:fadeUp 0.8s 0.3s ease both; }
-        .lp-btn { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.85rem 1.75rem; border-radius:3px; cursor:pointer; transition:all 0.2s; }
-        .lp-btn.fill { background:#1A1A1A; color:#F3EFE6; border:1px solid #1A1A1A; }
-        .lp-btn.fill:hover { background:#C9A84C; border-color:#C9A84C; color:#1A1A1A; }
-        .lp-btn.ghost { background:transparent; color:#1A1A1A; border:1px solid #1A1A1A; }
-        .lp-btn.ghost:hover { background:#1A1A1A; color:#F3EFE6; }
+        /* HERO — full screen bg image, centered title */
+        .v-hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem; }
+        .v-hero-bg { position:absolute; inset:0; background-image:linear-gradient(rgba(10,10,12,0.55), rgba(10,10,12,0.7)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1600&q=80'); background-size:cover; background-position:center; }
+        .v-hero-content { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; animation:vfadeUp 0.9s ease both; }
+        .v-hero-name { font-size:clamp(2.4rem,8vw,5.5rem); font-weight:800; letter-spacing:-0.03em; color:#fff; line-height:1; }
+        .v-hero-name span { color:#C9A84C; }
+        .v-hero-tag { font-family:'DM Mono',monospace; font-size:0.95rem; color:rgba(255,255,255,0.8); letter-spacing:0.1em; margin-top:1.25rem; text-transform:uppercase; }
+        .v-walker-wrap { position:relative; height:26px; margin:1.5rem 0 0; overflow:visible; width:240px; }
+        .v-walker { position:absolute; top:0; left:0; animation:carDrive 9s linear infinite; }
+        .v-car-svg { animation:carBob 0.8s ease-in-out infinite; overflow:visible; }
+        .v-wheel-f { animation:wheelSpin 1.5s linear infinite; transform-origin:9px 18px; }
+        .v-wheel-r { animation:wheelSpin 1.5s linear infinite; transform-origin:32px 18px; }
+        .v-hero-cta { display:flex; gap:1rem; margin-top:2rem; flex-wrap:wrap; justify-content:center; }
+        .v-btn { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.9rem 2rem; border-radius:2px; cursor:pointer; transition:all 0.2s; }
+        .v-btn.fill { background:#C9A84C; color:#0A0A0C; border:1px solid #C9A84C; }
+        .v-btn.fill:hover { background:#fff; border-color:#fff; }
+        .v-btn.ghost { background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.5); }
+        .v-btn.ghost:hover { border-color:#fff; background:rgba(255,255,255,0.1); }
 
-        .lp-walker-wrap { position:relative; height:24px; margin:2rem 0 0; overflow:visible; width:200px; }
-        .lp-walker { position:absolute; top:0; left:0; animation:carDrive 9s linear infinite; }
-        .lp-car-svg { animation:carBob 0.8s ease-in-out infinite; overflow:visible; }
-        .lp-wheel-f { animation:wheelSpin 1.5s linear infinite; transform-origin:9px 18px; }
-        .lp-wheel-r { animation:wheelSpin 1.5s linear infinite; transform-origin:32px 18px; }
+        /* WHAT WE DO — 3 icon columns */
+        .v-section { padding:6rem 2rem; max-width:1100px; margin:0 auto; }
+        .v-section-label { text-align:center; font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:#C9A84C; margin-bottom:0.75rem; }
+        .v-section-heading { text-align:center; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:#1A1A1A; margin-bottom:3.5rem; letter-spacing:-0.01em; }
+        .v-trio { display:grid; grid-template-columns:repeat(3,1fr); gap:3rem; }
+        @media(max-width:760px){ .v-trio { grid-template-columns:1fr; gap:2.5rem; } }
+        .v-trio-item { text-align:center; }
+        .v-trio-icon { font-size:2.5rem; margin-bottom:1.25rem; }
+        .v-trio-title { font-size:1.25rem; font-weight:700; color:#1A1A1A; margin-bottom:0.75rem; }
+        .v-trio-text { font-family:'DM Mono',monospace; font-size:0.8rem; color:#777; line-height:1.7; }
 
-        /* MANIFESTO */
-        .lp-manifesto { max-width:1100px; margin:0 auto; padding:4rem 2.5rem; border-top:1px solid #E2DCC9; display:grid; grid-template-columns:200px 1fr; gap:2rem; }
-        @media(max-width:680px){ .lp-manifesto { grid-template-columns:1fr; } }
-        .lp-manifesto-label { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; }
-        .lp-manifesto-text { font-size:clamp(1.3rem,2.8vw,1.9rem); font-weight:600; line-height:1.4; letter-spacing:-0.01em; color:#1A1A1A; }
-        .lp-manifesto-text .dim { color:#9A958A; }
+        /* SERVICES — alternating image/text blocks */
+        .v-services { background:#F7F5F0; padding:5rem 0; }
+        .v-service-block { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:3.5rem; align-items:center; padding:3rem 2rem; }
+        @media(max-width:760px){ .v-service-block { grid-template-columns:1fr; gap:1.5rem; } .v-service-block.reverse .v-service-img { order:-1; } }
+        .v-service-img { aspect-ratio:4/3; background-size:cover; background-position:center; border-radius:3px; }
+        .v-service-label { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; margin-bottom:0.75rem; }
+        .v-service-title { font-size:clamp(1.6rem,3.5vw,2.2rem); font-weight:800; color:#1A1A1A; margin-bottom:1.25rem; line-height:1.15; }
+        .v-service-desc { font-family:'DM Mono',monospace; font-size:0.82rem; color:#777; line-height:1.8; margin-bottom:1.75rem; }
+        .v-service-link { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:#1A1A1A; cursor:pointer; display:inline-flex; align-items:center; gap:8px; border-bottom:1px solid #1A1A1A; padding-bottom:3px; transition:color 0.2s, border-color 0.2s; }
+        .v-service-link:hover { color:#C9A84C; border-color:#C9A84C; }
+        .v-service-link::after { content:'→'; transition:transform 0.2s; }
+        .v-service-link:hover::after { transform:translateX(4px); }
 
-        /* SERVICES — numbered like 001/002/003 */
-        .lp-services { max-width:1100px; margin:0 auto; padding:1rem 2.5rem 4rem; border-top:1px solid #E2DCC9; }
-        .lp-services-heading { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#9A958A; padding:2rem 0 1rem; }
-        .lp-service-row { display:grid; grid-template-columns:90px 1fr 200px; gap:1.5rem; align-items:start; padding:2rem 0; border-top:1px solid #E2DCC9; cursor:pointer; transition:background 0.2s; }
-        @media(max-width:680px){ .lp-service-row { grid-template-columns:60px 1fr; } .lp-service-row > *:nth-child(3){ display:none; } }
-        .lp-service-row:hover { background:#EAE4D4; }
-        .lp-service-num { font-family:'DM Mono',monospace; font-size:0.78rem; color:#C9A84C; padding-top:0.2rem; }
-        .lp-service-body h3 { font-size:1.3rem; font-weight:700; margin-bottom:0.5rem; color:#1A1A1A; }
-        .lp-service-body p { font-family:'DM Mono',monospace; font-size:0.78rem; color:#6B6B60; line-height:1.6; max-width:480px; }
-        .lp-service-tags { display:flex; flex-direction:column; gap:0.3rem; align-items:flex-end; }
-        .lp-service-tag { font-family:'DM Mono',monospace; font-size:0.65rem; color:#9A958A; letter-spacing:0.05em; }
-        .lp-service-link { font-family:'DM Mono',monospace; font-size:0.7rem; color:#1A1A1A; margin-top:0.5rem; display:flex; align-items:center; gap:6px; }
-        .lp-service-link::after { content:'→'; transition:transform 0.2s; }
-        .lp-service-row:hover .lp-service-link::after { transform:translateX(4px); }
-
-        /* PROCESS — 1,2,3,4 steps */
-        .lp-process { max-width:1100px; margin:0 auto; padding:4rem 2.5rem; border-top:1px solid #E2DCC9; }
-        .lp-process-heading { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#9A958A; margin-bottom:2.5rem; }
-        .lp-process-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:2rem; }
-        @media(max-width:760px){ .lp-process-grid { grid-template-columns:1fr 1fr; } }
-        @media(max-width:480px){ .lp-process-grid { grid-template-columns:1fr; } }
-        .lp-process-num { font-size:2.2rem; font-weight:800; color:#E2DCC9; margin-bottom:0.75rem; line-height:1; }
-        .lp-process-title { font-size:1.05rem; font-weight:700; color:#1A1A1A; margin-bottom:0.5rem; }
-        .lp-process-desc { font-family:'DM Mono',monospace; font-size:0.76rem; color:#6B6B60; line-height:1.6; }
-
-        /* TESTIMONIALS */
-        .lp-testimonials { max-width:1100px; margin:0 auto; padding:4rem 2.5rem; border-top:1px solid #E2DCC9; }
-        .lp-test-heading { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#9A958A; margin-bottom:2.5rem; }
-        .lp-test-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
-        @media(max-width:760px){ .lp-test-grid { grid-template-columns:1fr; } }
-        .lp-test-card { background:#FAF7F0; border:1px solid #E2DCC9; border-radius:3px; padding:1.75rem; }
-        .lp-test-text { font-size:0.92rem; line-height:1.6; color:#2A2A24; margin-bottom:1.25rem; }
-        .lp-test-name { font-family:'DM Mono',monospace; font-size:0.72rem; font-weight:500; color:#1A1A1A; }
-        .lp-test-role { font-family:'DM Mono',monospace; font-size:0.68rem; color:#9A958A; margin-top:0.15rem; }
+        /* STATS BAND */
+        .v-stats { background:#1A1A1A; padding:4rem 2rem; }
+        .v-stats-inner { max-width:1100px; margin:0 auto; display:flex; justify-content:center; gap:5rem; flex-wrap:wrap; text-align:center; }
+        .v-stat-num { font-size:clamp(2.5rem,6vw,3.5rem); font-weight:800; color:#C9A84C; line-height:1; }
+        .v-stat-lbl { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#999; margin-top:0.75rem; }
 
         /* CONTACT */
-        .lp-contact { max-width:1100px; margin:0 auto; padding:4rem 2.5rem 5rem; border-top:1px solid #E2DCC9; text-align:center; }
-        .lp-contact-eyebrow { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; margin-bottom:1rem; }
-        .lp-contact-title { font-size:clamp(1.8rem,4vw,2.6rem); font-weight:700; color:#1A1A1A; margin-bottom:2.5rem; }
-        .lp-wa-row { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
-        .lp-wa-btn { display:flex; align-items:center; gap:0.6rem; background:#FAF7F0; border:1px solid #E2DCC9; border-radius:3px; padding:0.75rem 1.5rem; text-decoration:none; transition:all 0.2s; }
-        .lp-wa-btn:hover { border-color:#C9A84C; transform:translateY(-2px); }
-        .lp-wa-region { font-family:'DM Mono',monospace; font-size:0.62rem; color:#9A958A; letter-spacing:0.08em; text-transform:uppercase; }
-        .lp-wa-number { font-family:'DM Mono',monospace; font-size:0.78rem; color:#1A1A1A; }
+        .v-contact { padding:6rem 2rem; max-width:1100px; margin:0 auto; text-align:center; }
+        .v-contact-title { font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:#1A1A1A; margin-bottom:2.5rem; }
+        .v-wa-row { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+        .v-wa-btn { display:flex; align-items:center; gap:0.6rem; background:#F7F5F0; border:1px solid #E5E1D8; border-radius:3px; padding:0.85rem 1.6rem; text-decoration:none; transition:all 0.2s; }
+        .v-wa-btn:hover { border-color:#C9A84C; transform:translateY(-2px); }
+        .v-wa-region { font-family:'DM Mono',monospace; font-size:0.62rem; color:#999; letter-spacing:0.08em; text-transform:uppercase; }
+        .v-wa-number { font-family:'DM Mono',monospace; font-size:0.8rem; color:#1A1A1A; }
 
-        .lp-admin-box { max-width:280px; margin:2rem auto 0; }
-        .lp-pw-input { width:100%; background:#fff; border:1px solid #D8D2BE; color:#1A1A1A; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.65rem 1rem; border-radius:3px; outline:none; margin-bottom:0.5rem; }
-        .lp-pw-input:focus { border-color:#C9A84C; }
-        .lp-pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#C0392B; margin-top:0.4rem; }
+        .v-admin-box { max-width:280px; margin:2.5rem auto 0; }
+        .v-pw-input { width:100%; background:#fff; border:1px solid #D8D2C4; color:#1A1A1A; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.65rem 1rem; border-radius:3px; outline:none; margin-bottom:0.5rem; }
+        .v-pw-input:focus { border-color:#C9A84C; }
+        .v-pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#C0392B; margin-top:0.4rem; }
 
-        .lp-footer { text-align:center; padding:2rem; font-family:'DM Mono',monospace; font-size:0.65rem; color:#9A958A; letter-spacing:0.08em; border-top:1px solid #E2DCC9; }
+        /* FOOTER — multi column */
+        .v-footer { background:#1A1A1A; padding:4rem 2rem 2rem; }
+        .v-footer-grid { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:2fr 1fr 1fr; gap:3rem; }
+        @media(max-width:680px){ .v-footer-grid { grid-template-columns:1fr; gap:2rem; } }
+        .v-footer-col h5 { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; margin-bottom:1.25rem; }
+        .v-footer-about { font-family:'DM Mono',monospace; font-size:0.8rem; color:#999; line-height:1.8; max-width:340px; }
+        .v-footer-logo { font-size:1.2rem; font-weight:800; color:#fff; margin-bottom:1rem; }
+        .v-footer-logo span { color:#C9A84C; }
+        .v-footer-links { display:flex; flex-direction:column; gap:0.6rem; }
+        .v-footer-links button { font-family:'DM Mono',monospace; font-size:0.78rem; color:#bbb; background:none; border:none; cursor:pointer; text-align:left; padding:0; transition:color 0.2s; }
+        .v-footer-links button:hover { color:#C9A84C; }
+        .v-footer-bottom { max-width:1100px; margin:3rem auto 0; padding-top:2rem; border-top:1px solid #333; font-family:'DM Mono',monospace; font-size:0.68rem; color:#666; letter-spacing:0.08em; text-align:center; }
       `}</style>
 
-      <div className="lp-wrap">
-
-        {/* NAV */}
-        <nav className="lp-nav">
-          <div className="lp-logo">SPARES<span>ANYWHERE</span></div>
-          <div className="lp-nav-links">
-            <button onClick={() => setView("garage")}>Garage Portal</button>
-            <button onClick={() => setView("stories")}>Stories</button>
-            <button onClick={() => setView("track")}>Track Order</button>
-          </div>
-        </nav>
+      <div className="v-wrap">
 
         {/* HERO */}
-        <div className="lp-hero">
-          <div className="lp-hero-eyebrow">Automotive Parts · London · Dubai · Lagos</div>
-          <h1 className="lp-hero-title">We find the part your garage can't.</h1>
-          <p className="lp-hero-sub">SpareAnywhere sources OEM and aftermarket parts across three markets — built for garages that need the rare part, not just the easy one.</p>
-          <div className="lp-hero-cta">
-            <button className="lp-btn fill" onClick={() => setView("garage")}>Submit a Request</button>
-            <button className="lp-btn ghost" onClick={() => setView("track")}>Track an Order</button>
-          </div>
-          <div className="lp-walker-wrap">
-            <div className="lp-walker">
-              <svg className="lp-car-svg" viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="2,16 4,9 11,9 15,4 29,4 33,9 40,9 42,16" />
-                <line x1="2" y1="16" x2="5" y2="16" />
-                <line x1="13" y1="16" x2="28" y2="16" />
-                <line x1="36" y1="16" x2="42" y2="16" />
-                <g className="lp-wheel-f"><circle cx="9" cy="18" r="4" /><line x1="9" y1="14" x2="9" y2="22" /><line x1="5" y1="18" x2="13" y2="18" /></g>
-                <g className="lp-wheel-r"><circle cx="32" cy="18" r="4" /><line x1="32" y1="14" x2="32" y2="22" /><line x1="28" y1="18" x2="36" y2="18" /></g>
-              </svg>
+        <div className="v-hero">
+          <div className="v-hero-bg"></div>
+          <nav className="v-nav">
+            <div className="v-nav-logo">SPARES<span>ANYWHERE</span></div>
+            <div className="v-nav-links">
+              <button onClick={() => setView("garage")}>Portal</button>
+              <button onClick={() => setView("stories")}>Stories</button>
+              <button onClick={() => setView("track")}>Track</button>
+            </div>
+          </nav>
+          <div className="v-hero-content">
+            <div className="v-hero-name">SPARES<span>ANYWHERE</span></div>
+            <div className="v-walker-wrap">
+              <div className="v-walker">
+                <svg className="v-car-svg" viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="2,16 4,9 11,9 15,4 29,4 33,9 40,9 42,16" />
+                  <line x1="2" y1="16" x2="5" y2="16" />
+                  <line x1="13" y1="16" x2="28" y2="16" />
+                  <line x1="36" y1="16" x2="42" y2="16" />
+                  <g className="v-wheel-f"><circle cx="9" cy="18" r="4" /><line x1="9" y1="14" x2="9" y2="22" /><line x1="5" y1="18" x2="13" y2="18" /></g>
+                  <g className="v-wheel-r"><circle cx="32" cy="18" r="4" /><line x1="32" y1="14" x2="32" y2="22" /><line x1="28" y1="18" x2="36" y2="18" /></g>
+                </svg>
+              </div>
+            </div>
+            <div className="v-hero-tag">No part too rare · London · Dubai · Lagos</div>
+            <div className="v-hero-cta">
+              <button className="v-btn fill" onClick={() => setView("garage")}>Submit a Request</button>
+              <button className="v-btn ghost" onClick={() => setView("track")}>Track an Order</button>
             </div>
           </div>
         </div>
 
-        {/* MANIFESTO */}
-        <div className="lp-manifesto reveal">
-          <div className="lp-manifesto-label">manifesto</div>
-          <div className="lp-manifesto-text">
-            We don't treat sourcing as a commodity.<br/>
-            <span className="dim">Every part has a story — where it came from, who needs it, why it matters.</span><br/>
-            We find it properly, or we don't take the job.
-          </div>
-        </div>
-
-        {/* SERVICES */}
-        <div className="lp-services">
-          <div className="lp-services-heading reveal">how we can help</div>
-
-          <div className="lp-service-row reveal" onClick={() => setView("garage")}>
-            <div className="lp-service-num">001</div>
-            <div className="lp-service-body">
-              <h3>Garage Portal</h3>
-              <p>Submit part requests, upload VIN plates or reference photos, and get a quote within 48 hours.</p>
-              <div className="lp-service-link">Open Portal</div>
+        {/* WHAT WE DO */}
+        <div className="v-section">
+          <div className="v-section-label v-reveal">What we do</div>
+          <div className="v-section-heading v-reveal">Sourcing, simplified.</div>
+          <div className="v-trio v-reveal">
+            <div className="v-trio-item">
+              <div className="v-trio-icon">🌍</div>
+              <div className="v-trio-title">Global Reach</div>
+              <div className="v-trio-text">Three markets — London, Dubai, and Lagos — connected into one supply chain that finds the rare part wherever it lives.</div>
             </div>
-            <div className="lp-service-tags">
-              <span className="lp-service-tag">VIN UPLOAD</span>
-              <span className="lp-service-tag">PHOTO REFERENCE</span>
-              <span className="lp-service-tag">48H QUOTE</span>
+            <div className="v-trio-item">
+              <div className="v-trio-icon">⚙️</div>
+              <div className="v-trio-title">OEM &amp; Aftermarket</div>
+              <div className="v-trio-text">Genuine manufacturer parts or quality aftermarket alternatives — your choice, with honest pricing on both.</div>
             </div>
-          </div>
-
-          <div className="lp-service-row reveal" onClick={() => setView("stories")}>
-            <div className="lp-service-num">002</div>
-            <div className="lp-service-body">
-              <h3>Sourcing Stories</h3>
-              <p>Real jobs, rare parts, and how we tracked them down across London, Dubai, and Lagos.</p>
-              <div className="lp-service-link">Read Stories</div>
-            </div>
-            <div className="lp-service-tags">
-              <span className="lp-service-tag">CASE STUDIES</span>
-              <span className="lp-service-tag">REAL ORDERS</span>
-            </div>
-          </div>
-
-          <div className="lp-service-row reveal" onClick={() => setView("track")}>
-            <div className="lp-service-num">003</div>
-            <div className="lp-service-body">
-              <h3>Track Your Order</h3>
-              <p>Enter your Order ID and see exactly where your part is — pending, quoted, sourcing, or fulfilled.</p>
-              <div className="lp-service-link">Track Now</div>
-            </div>
-            <div className="lp-service-tags">
-              <span className="lp-service-tag">LIVE STATUS</span>
-              <span className="lp-service-tag">NO LOGIN</span>
-            </div>
-          </div>
-
-          {isAdminDevice && (
-            <div className="lp-admin-box">
-              <input className="lp-pw-input" type="password" placeholder="Admin password…" value={adminPw}
-                onChange={e => { setAdminPw(e.target.value); setPwError(false); }}
-                onKeyDown={e => e.key === "Enter" && enterAdmin()} />
-              <button className="lp-btn fill" style={{width:"100%"}} onClick={enterAdmin}>Enter Admin →</button>
-              {pwError && <div className="lp-pw-error">Incorrect password</div>}
-            </div>
-          )}
-        </div>
-
-        {/* PROCESS */}
-        <div className="lp-process">
-          <div className="lp-process-heading reveal">the process</div>
-          <div className="lp-process-grid reveal stagger">
-            <div>
-              <div className="lp-process-num">1</div>
-              <div className="lp-process-title">Submit the request</div>
-              <div className="lp-process-desc">Tell us the part, the car, and upload a reference photo if you have one.</div>
-            </div>
-            <div>
-              <div className="lp-process-num">2</div>
-              <div className="lp-process-title">We source it</div>
-              <div className="lp-process-desc">We check our network across London, Dubai, and Lagos for the fastest route.</div>
-            </div>
-            <div>
-              <div className="lp-process-num">3</div>
-              <div className="lp-process-title">You get a quote</div>
-              <div className="lp-process-desc">Usually within 48 hours — OEM or aftermarket, your choice.</div>
-            </div>
-            <div>
-              <div className="lp-process-num">4</div>
-              <div className="lp-process-title">Delivered</div>
-              <div className="lp-process-desc">Track it the whole way, right up to your garage door.</div>
+            <div className="v-trio-item">
+              <div className="v-trio-icon">⚡</div>
+              <div className="v-trio-title">48h Turnaround</div>
+              <div className="v-trio-text">Most requests are quoted within 48 hours. We move fast because your garage can't wait weeks for a part.</div>
             </div>
           </div>
         </div>
 
-        {/* TESTIMONIALS */}
-        <div className="lp-testimonials">
-          <div className="lp-test-heading reveal">what garages say</div>
-          <div className="lp-test-grid reveal stagger">
-            <div className="lp-test-card">
-              <p className="lp-test-text">"Needed a part nobody in Lagos stocked. Had it sourced from the UK in under two weeks."</p>
-              <div className="lp-test-name">Workshop Owner</div>
-              <div className="lp-test-role">Victoria Island, Lagos</div>
+        {/* SERVICES — alternating blocks */}
+        <div className="v-services">
+          <div className="v-section-label v-reveal" style={{marginBottom:"2.5rem"}}>Services</div>
+
+          <div className="v-service-block v-reveal">
+            <div>
+              <div className="v-service-label">Service / 001</div>
+              <div className="v-service-title">Garage Portal</div>
+              <div className="v-service-desc">Submit a part request, upload VIN plates or reference photos, and get a quote within 48 hours. Track every order from request to delivery — no chasing, no guessing.</div>
+              <span className="v-service-link" onClick={() => setView("garage")}>Open Portal</span>
             </div>
-            <div className="lp-test-card">
-              <p className="lp-test-text">"Quick responses, fair quotes, and they actually find the rare stuff other suppliers give up on."</p>
-              <div className="lp-test-name">Garage Manager</div>
-              <div className="lp-test-role">Lekki, Lagos</div>
+            <div className="v-service-img" style={{backgroundImage:"url('https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80')"}}></div>
+          </div>
+
+          <div className="v-service-block reverse v-reveal">
+            <div className="v-service-img" style={{backgroundImage:"url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80')"}}></div>
+            <div>
+              <div className="v-service-label">Service / 002</div>
+              <div className="v-service-title">Sourcing Stories</div>
+              <div className="v-service-desc">Behind every order is a hunt — dead ends, long-shot contacts, and the moment the right part finally surfaces. Read how we tracked down the rarest jobs across three continents.</div>
+              <span className="v-service-link" onClick={() => setView("stories")}>Read Stories</span>
             </div>
-            <div className="lp-test-card">
-              <p className="lp-test-text">"Tracked our order the whole way through. No chasing, no guessing — just knew where it was."</p>
-              <div className="lp-test-name">Fleet Operator</div>
-              <div className="lp-test-role">Ikeja, Lagos</div>
+          </div>
+
+          <div className="v-service-block v-reveal">
+            <div>
+              <div className="v-service-label">Service / 003</div>
+              <div className="v-service-title">Order Tracking</div>
+              <div className="v-service-desc">Enter your Order ID and see exactly where your part is — pending, quoted, sourcing, or fulfilled. Live status, no login required.</div>
+              <span className="v-service-link" onClick={() => setView("track")}>Track Now</span>
             </div>
+            <div className="v-service-img" style={{backgroundImage:"url('https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=800&q=80')"}}></div>
+          </div>
+        </div>
+
+        {/* STATS */}
+        <div className="v-stats">
+          <div className="v-stats-inner">
+            <div><div className="v-stat-num">3</div><div className="v-stat-lbl">Countries</div></div>
+            <div><div className="v-stat-num">48h</div><div className="v-stat-lbl">Avg. Turnaround</div></div>
+            <div><div className="v-stat-num">OEM</div><div className="v-stat-lbl">&amp; Aftermarket</div></div>
           </div>
         </div>
 
         {/* CONTACT */}
-        <div className="lp-contact reveal">
-          <div className="lp-contact-eyebrow">contact</div>
-          <div className="lp-contact-title">Talk to us on WhatsApp.</div>
-          <div className="lp-wa-row">
-            <a className="lp-wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
+        <div className="v-contact">
+          <div className="v-section-label v-reveal">Contact</div>
+          <div className="v-contact-title v-reveal">Talk to us on WhatsApp.</div>
+          <div className="v-wa-row v-reveal">
+            <a className="v-wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
               <span>💬</span>
-              <div><div className="lp-wa-region">London</div><div className="lp-wa-number">+44 7494 806066</div></div>
+              <div><div className="v-wa-region">London</div><div className="v-wa-number">+44 7494 806066</div></div>
             </a>
-            <a className="lp-wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
+            <a className="v-wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
               <span>💬</span>
-              <div><div className="lp-wa-region">Lagos</div><div className="lp-wa-number">+234 9168 340653</div></div>
+              <div><div className="v-wa-region">Lagos</div><div className="v-wa-number">+234 9168 340653</div></div>
             </a>
-            <a className="lp-wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
+            <a className="v-wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
               <span>💬</span>
-              <div><div className="lp-wa-region">Dubai</div><div className="lp-wa-number">+971 557 997247</div></div>
+              <div><div className="v-wa-region">Dubai</div><div className="v-wa-number">+971 557 997247</div></div>
             </a>
           </div>
+          {isAdminDevice && (
+            <div className="v-admin-box">
+              <input className="v-pw-input" type="password" placeholder="Admin password…" value={adminPw}
+                onChange={e => { setAdminPw(e.target.value); setPwError(false); }}
+                onKeyDown={e => e.key === "Enter" && enterAdmin()} />
+              <button className="v-btn fill" style={{width:"100%"}} onClick={enterAdmin}>Enter Admin →</button>
+              {pwError && <div className="v-pw-error">Incorrect password</div>}
+            </div>
+          )}
         </div>
 
-        <div className="lp-footer">SPARESANYWHERE © {new Date().getFullYear()} — LONDON · DUBAI · LAGOS</div>
+        {/* FOOTER */}
+        <div className="v-footer">
+          <div className="v-footer-grid">
+            <div className="v-footer-col">
+              <div className="v-footer-logo">SPARES<span>ANYWHERE</span></div>
+              <p className="v-footer-about">Cross-border automotive parts sourcing across London, Dubai, and Lagos. OEM and aftermarket — no part too rare, no market too far.</p>
+            </div>
+            <div className="v-footer-col">
+              <h5>Explore</h5>
+              <div className="v-footer-links">
+                <button onClick={() => setView("garage")}>Garage Portal</button>
+                <button onClick={() => setView("stories")}>Sourcing Stories</button>
+                <button onClick={() => setView("track")}>Track Order</button>
+              </div>
+            </div>
+            <div className="v-footer-col">
+              <h5>Contact</h5>
+              <div className="v-footer-links">
+                <a href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}><button>London · WhatsApp</button></a>
+                <a href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}><button>Lagos · WhatsApp</button></a>
+                <a href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}><button>Dubai · WhatsApp</button></a>
+              </div>
+            </div>
+          </div>
+          <div className="v-footer-bottom">SPARESANYWHERE © {new Date().getFullYear()} — LONDON · DUBAI · LAGOS</div>
+        </div>
 
       </div>
     </>
