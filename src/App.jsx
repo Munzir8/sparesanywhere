@@ -187,7 +187,8 @@ export default function App() {
         .v-hero-content { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; animation:vfadeUp 0.9s ease both; }
         .v-hero-name { font-size:clamp(1.5rem,7vw,5.5rem); font-weight:800; letter-spacing:-0.03em; color:#fff; line-height:1; max-width:100%; white-space:nowrap; }
         .v-hero-name span { color:#C9A84C; }
-        .v-hero-tag { font-family:'DM Mono',monospace; font-size:0.95rem; color:rgba(255,255,255,0.8); letter-spacing:0.1em; margin-top:1.25rem; text-transform:uppercase; }
+        .v-hero-tag { font-family:'DM Mono',monospace; font-size:0.85rem; color:rgba(255,255,255,0.7); letter-spacing:0.1em; margin-top:1.25rem; text-transform:uppercase; line-height:2.2; }
+        .v-hero-cities { display:inline-block; font-size:1.25rem; font-weight:500; color:#C9A84C; letter-spacing:0.15em; margin-top:0.3rem; }
         .v-walker-wrap { position:relative; height:26px; margin:1.5rem 0 0; overflow:visible; width:240px; }
         .v-walker { position:absolute; top:0; left:0; animation:carDrive 9s linear infinite; }
         .v-car-svg { animation:carBob 0.8s ease-in-out infinite; overflow:visible; }
@@ -285,7 +286,7 @@ export default function App() {
                 </svg>
               </div>
             </div>
-            <div className="v-hero-tag">No part too rare · London · Dubai · Lagos</div>
+            <div className="v-hero-tag">No part too rare<br/><span className="v-hero-cities">London · Dubai · Lagos</span></div>
             <div className="v-hero-cta">
               <button className="v-btn fill" onClick={() => setView("garage")}>Submit a Request</button>
               <button className="v-btn ghost" onClick={() => setView("track")}>Track an Order</button>
