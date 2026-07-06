@@ -184,13 +184,31 @@ export default function App() {
         @keyframes carBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-1px);} }
         @keyframes wheelSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
         @keyframes tickTock { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-        @keyframes phaseSlide { from{transform:translateX(0);} to{transform:translateX(-50%);} }
+        @keyframes marqueeMove { from{transform:translateX(0);} to{transform:translateX(-50%);} }
+        @keyframes floatBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
         html { scroll-behavior:smooth; }
 
         .d-wrap { width:100%; background:#0E0E0C; font-family:'DM Mono',monospace; color:#E8E4D8; overflow-x:hidden; }
 
         .d-reveal { opacity:0; transform:translateY(28px); transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
         .d-reveal.revealed { opacity:1; transform:translateY(0); }
+        .d-stagger > * { opacity:0; transform:translateY(24px); transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+        .d-stagger.revealed > * { opacity:1; transform:translateY(0); }
+        .d-stagger.revealed > *:nth-child(1){transition-delay:0ms;}
+        .d-stagger.revealed > *:nth-child(2){transition-delay:120ms;}
+        .d-stagger.revealed > *:nth-child(3){transition-delay:240ms;}
+        .d-stagger.revealed > *:nth-child(4){transition-delay:360ms;}
+
+        /* MARQUEE BAND */
+        .d-marquee { overflow:hidden; border-top:1px solid #26261F; border-bottom:1px solid #26261F; padding:1rem 0; background:#C9A84C; }
+        .d-marquee-track { display:inline-flex; white-space:nowrap; animation:marqueeMove 20s linear infinite; }
+        .d-marquee-track span { font-family:'Syne',sans-serif; font-size:0.85rem; font-weight:700; letter-spacing:0.15em; color:#0E0E0C; margin:0 1.75rem; text-transform:uppercase; }
+
+        /* LIGHT SECTIONS */
+        .d-light { background:#F1EDE2; color:#1E1D18; }
+        .d-light .d-sec-title { color:#1E1D18; }
+        .d-light .d-sec-sub { color:#6E6A5C; }
+        .d-light .d-sec-num { color:#A8862F; }
 
         /* TOP CLOCK BAR */
         .d-clockbar { display:flex; justify-content:space-between; align-items:center; padding:0.9rem 2rem; border-bottom:1px solid #26261F; font-size:0.62rem; letter-spacing:0.12em; color:#8A8677; flex-wrap:wrap; gap:0.75rem; position:sticky; top:0; background:rgba(14,14,12,0.94); backdrop-filter:blur(8px); z-index:30; }
@@ -233,26 +251,28 @@ export default function App() {
         .d-sec-sub { font-size:0.75rem; color:#8A8677; letter-spacing:0.05em; line-height:1.8; max-width:520px; }
 
         /* SOURCING CHAIN — phases */
-        .d-phases { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:#26261F; border:1px solid #26261F; margin-top:3rem; }
+        .d-phases { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:#D8D2C0; border:1px solid #D8D2C0; margin-top:3rem; }
         @media(max-width:760px){ .d-phases { grid-template-columns:1fr 1fr; } }
         @media(max-width:460px){ .d-phases { grid-template-columns:1fr; } }
-        .d-phase { background:#12120F; padding:2rem 1.5rem; transition:background 0.25s; }
-        .d-phase:hover { background:#191914; }
-        .d-phase-tag { font-size:0.6rem; letter-spacing:0.2em; color:#C9A84C; margin-bottom:1.1rem; }
-        .d-phase-name { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:700; color:#E8E4D8; margin-bottom:0.75rem; }
-        .d-phase-desc { font-size:0.68rem; color:#8A8677; line-height:1.75; }
+        .d-phase { background:#F1EDE2; padding:2rem 1.5rem; transition:background 0.3s, transform 0.3s; }
+        .d-phase:hover { background:#FFFDF6; transform:translateY(-4px); }
+        .d-phase-tag { font-size:0.6rem; letter-spacing:0.2em; color:#A8862F; margin-bottom:1.1rem; }
+        .d-phase-name { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:700; color:#1E1D18; margin-bottom:0.75rem; }
+        .d-phase-desc { font-size:0.68rem; color:#6E6A5C; line-height:1.75; }
 
         /* GOODS MANIFEST — labeled parts grid */
-        .d-manifest-note { font-size:0.6rem; letter-spacing:0.15em; color:#5A5748; margin-top:0.75rem; }
+        .d-manifest-note { font-size:0.6rem; letter-spacing:0.15em; color:#8B8574; margin-top:0.75rem; }
         .d-manifest { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:3rem; }
         @media(max-width:860px){ .d-manifest { grid-template-columns:repeat(2,1fr); } }
-        .d-item { border:1px solid #26261F; background:#12120F; padding:1.5rem 1.25rem; position:relative; transition:border-color 0.25s, transform 0.25s; cursor:default; }
-        .d-item:hover { border-color:#C9A84C; transform:translateY(-3px); }
-        .d-item-num { position:absolute; top:0.85rem; right:1rem; font-size:0.6rem; color:#5A5748; }
-        .d-item:hover .d-item-num { color:#C9A84C; }
-        .d-item-icon { font-size:1.7rem; margin-bottom:1rem; }
-        .d-item-name { font-size:0.68rem; letter-spacing:0.12em; text-transform:uppercase; color:#E8E4D8; margin-bottom:0.4rem; }
-        .d-item-origin { font-size:0.6rem; color:#8A8677; letter-spacing:0.08em; }
+        .d-item { border:1px solid #D8D2C0; background:#FFFDF6; padding:1.5rem 1.25rem; position:relative; transition:border-color 0.3s, transform 0.3s, box-shadow 0.3s; cursor:default; }
+        .d-item:hover { border-color:#A8862F; transform:translateY(-6px) rotate(-1deg); box-shadow:0 14px 32px rgba(30,29,24,0.12); }
+        .d-item:nth-child(even):hover { transform:translateY(-6px) rotate(1deg); }
+        .d-item-num { position:absolute; top:0.85rem; right:1rem; font-size:0.6rem; color:#B4AE9C; transition:color 0.2s; }
+        .d-item:hover .d-item-num { color:#A8862F; }
+        .d-item-icon { font-size:1.7rem; margin-bottom:1rem; transition:transform 0.3s; }
+        .d-item:hover .d-item-icon { transform:scale(1.2) rotate(6deg); }
+        .d-item-name { font-size:0.68rem; letter-spacing:0.12em; text-transform:uppercase; color:#1E1D18; margin-bottom:0.4rem; }
+        .d-item-origin { font-size:0.6rem; color:#8B8574; letter-spacing:0.08em; }
 
         /* SERVICES — dossier rows */
         .d-servrows { margin-top:3rem; }
@@ -328,12 +348,21 @@ export default function App() {
           <div className="d-scrollcue">(scroll down)</div>
         </div>
 
-        {/* SOURCING CHAIN */}
-        <div className="d-section" id="d-chain">
+        {/* MARQUEE BAND */}
+        <div className="d-marquee">
+          <div className="d-marquee-track">
+            <span>No part too rare</span><span>◦</span><span>London</span><span>◦</span><span>Dubai</span><span>◦</span><span>Lagos</span><span>◦</span><span>OEM &amp; Aftermarket</span><span>◦</span><span>48h Turnaround</span><span>◦</span>
+            <span>No part too rare</span><span>◦</span><span>London</span><span>◦</span><span>Dubai</span><span>◦</span><span>Lagos</span><span>◦</span><span>OEM &amp; Aftermarket</span><span>◦</span><span>48h Turnaround</span><span>◦</span>
+          </div>
+        </div>
+
+        {/* SOURCING CHAIN — light theme */}
+        <div className="d-section d-light" id="d-chain" style={{maxWidth:"none"}}>
+          <div style={{maxWidth:"1050px", margin:"0 auto"}}>
           <div className="d-sec-num">02 / SOURCING CHAIN</div>
           <div className="d-sec-title d-reveal">From request<br/>to delivery.</div>
           <div className="d-sec-sub d-reveal">Every order moves through a controlled four-phase chain. No dead ends. No guesswork. Each phase is logged and trackable.</div>
-          <div className="d-phases d-reveal">
+          <div className="d-phases d-stagger d-reveal">
             <div className="d-phase">
               <div className="d-phase-tag">PHASE 01</div>
               <div className="d-phase-name">REQUEST</div>
@@ -355,14 +384,16 @@ export default function App() {
               <div className="d-phase-desc">Shipped, cleared, and delivered. Status trackable at every step with your Order ID.</div>
             </div>
           </div>
+          </div>
         </div>
 
-        {/* GOODS MANIFEST */}
-        <div className="d-section" id="d-manifest">
+        {/* GOODS MANIFEST — light theme */}
+        <div className="d-section d-light" id="d-manifest" style={{maxWidth:"none", borderTop:"1px solid #D8D2C0"}}>
+          <div style={{maxWidth:"1050px", margin:"0 auto"}}>
           <div className="d-sec-num">03 / GOODS MANIFEST</div>
           <div className="d-sec-title d-reveal">Recently sourced.</div>
           <div className="d-manifest-note d-reveal">(inspect the labels)</div>
-          <div className="d-manifest d-reveal">
+          <div className="d-manifest d-stagger d-reveal">
             <div className="d-item">
               <span className="d-item-num">(01)</span>
               <div className="d-item-icon">🛞</div>
@@ -387,6 +418,7 @@ export default function App() {
               <div className="d-item-name">Side Steps</div>
               <div className="d-item-origin">ROLLS-ROYCE CULLINAN — EX. CN</div>
             </div>
+          </div>
           </div>
         </div>
 
