@@ -127,8 +127,25 @@ export default function App() {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("revealed"); });
     }, { threshold: 0.15 });
-    document.querySelectorAll(".reveal, .v-reveal").forEach(el => obs.observe(el));
+    document.querySelectorAll(".reveal, .v-reveal, .d-reveal").forEach(el => obs.observe(el));
     return () => obs.disconnect();
+  }, [view]);
+
+  // Live city clocks
+  const [cityTimes, setCityTimes] = useState({ london: "--:--", dubai: "--:--", lagos: "--:--" });
+  useEffect(() => {
+    if (view !== "home") return;
+    function updateClocks() {
+      const fmt = (tz) => new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: tz }).format(new Date());
+      setCityTimes({
+        london: fmt("Europe/London") + " GMT",
+        dubai: fmt("Asia/Dubai") + " GMT+4",
+        lagos: fmt("Africa/Lagos") + " GMT+1",
+      });
+    }
+    updateClocks();
+    const id = setInterval(updateClocks, 30000);
+    return () => clearInterval(id);
   }, [view]);
 
   // Generate a starfield for the galactic homepage
@@ -162,259 +179,285 @@ export default function App() {
   return (
     <>
       <style>{FONT}{BASE}{`
-        @keyframes vfadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes dfadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
         @keyframes carDrive { 0%{left:0;transform:scaleX(1);} 47%{left:calc(100% - 44px);transform:scaleX(1);} 50%{left:calc(100% - 44px);transform:scaleX(-1);} 97%{left:0;transform:scaleX(-1);} 100%{left:0;transform:scaleX(1);} }
         @keyframes carBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-1px);} }
         @keyframes wheelSpin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+        @keyframes tickTock { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+        @keyframes phaseSlide { from{transform:translateX(0);} to{transform:translateX(-50%);} }
         html { scroll-behavior:smooth; }
-        .v-wrap { width:100%; background:#fff; font-family:'Syne',sans-serif; color:#2A2A2A; overflow-x:hidden; }
 
-        .v-reveal { opacity:0; transform:translateY(28px); transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
-        .v-reveal.revealed { opacity:1; transform:translateY(0); }
+        .d-wrap { width:100%; background:#0E0E0C; font-family:'DM Mono',monospace; color:#E8E4D8; overflow-x:hidden; }
 
-        /* NAV */
-        .v-nav { position:absolute; top:0; left:0; right:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:1.75rem 3rem; }
-        .v-nav-logo { font-size:1.15rem; font-weight:800; letter-spacing:-0.01em; color:#fff; }
-        .v-nav-logo span { color:#C9A84C; }
-        .v-nav-links { display:flex; gap:2.5rem; }
-        .v-nav-links button { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:#fff; background:none; border:none; cursor:pointer; transition:color 0.2s; opacity:0.85; }
-        .v-nav-links button:hover { color:#C9A84C; opacity:1; }
-        @media(max-width:680px){ .v-nav-links { gap:1.25rem; } .v-nav { padding:1.25rem 1.5rem; } }
+        .d-reveal { opacity:0; transform:translateY(28px); transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+        .d-reveal.revealed { opacity:1; transform:translateY(0); }
 
-        /* HERO — full screen bg image, centered title */
-        .v-hero { position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem; }
-        .v-hero-bg { position:absolute; inset:0; background-image:linear-gradient(rgba(10,10,12,0.55), rgba(10,10,12,0.7)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1600&q=80'); background-size:cover; background-position:center; }
-        .v-hero-content { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; animation:vfadeUp 0.9s ease both; }
-        .v-hero-name { font-size:clamp(1.1rem,5.8vw,5.5rem); font-weight:800; letter-spacing:-0.03em; color:#fff; line-height:1; max-width:100%; white-space:nowrap; }
-        .v-hero-name span { color:#C9A84C; }
-        .v-hero-tag { font-family:'DM Mono',monospace; font-size:0.85rem; color:rgba(255,255,255,0.7); letter-spacing:0.1em; margin-top:1.25rem; text-transform:uppercase; line-height:2.2; }
-        .v-hero-cities { display:inline-block; font-size:1.25rem; font-weight:500; color:#C9A84C; letter-spacing:0.15em; margin-top:0.3rem; }
-        .v-walker-wrap { position:relative; height:26px; margin:1.5rem 0 0; overflow:visible; width:240px; }
-        .v-walker { position:absolute; top:0; left:0; animation:carDrive 9s linear infinite; }
-        .v-car-svg { animation:carBob 0.8s ease-in-out infinite; overflow:visible; }
-        .v-wheel-f { animation:wheelSpin 1.5s linear infinite; transform-origin:9px 18px; }
-        .v-wheel-r { animation:wheelSpin 1.5s linear infinite; transform-origin:32px 18px; }
-        .v-hero-cta { display:flex; gap:1rem; margin-top:2rem; flex-wrap:wrap; justify-content:center; }
-        .v-btn { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.9rem 2rem; border-radius:2px; cursor:pointer; transition:all 0.2s; }
-        .v-btn.fill { background:#C9A84C; color:#0A0A0C; border:1px solid #C9A84C; }
-        .v-btn.fill:hover { background:#fff; border-color:#fff; }
-        .v-btn.ghost { background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.5); }
-        .v-btn.ghost:hover { border-color:#fff; background:rgba(255,255,255,0.1); }
+        /* TOP CLOCK BAR */
+        .d-clockbar { display:flex; justify-content:space-between; align-items:center; padding:0.9rem 2rem; border-bottom:1px solid #26261F; font-size:0.62rem; letter-spacing:0.12em; color:#8A8677; flex-wrap:wrap; gap:0.75rem; position:sticky; top:0; background:rgba(14,14,12,0.94); backdrop-filter:blur(8px); z-index:30; }
+        .d-clock { display:flex; gap:0.6rem; align-items:baseline; }
+        .d-clock-city { color:#E8E4D8; }
+        .d-clock-time { color:#C9A84C; animation:tickTock 2s ease-in-out infinite; }
+        @media(max-width:680px){ .d-clockbar { justify-content:center; } .d-clock:nth-child(2){ display:none; } }
 
-        /* WHAT WE DO — 3 icon columns */
-        .v-section { padding:6rem 2rem; max-width:1100px; margin:0 auto; }
-        .v-section-label { text-align:center; font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:#C9A84C; margin-bottom:0.75rem; }
-        .v-section-heading { text-align:center; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:#1A1A1A; margin-bottom:3.5rem; letter-spacing:-0.01em; }
-        .v-trio { display:grid; grid-template-columns:repeat(3,1fr); gap:3rem; }
-        @media(max-width:760px){ .v-trio { grid-template-columns:1fr; gap:2.5rem; } }
-        .v-trio-item { text-align:center; }
-        .v-trio-icon { font-size:2.5rem; margin-bottom:1.25rem; }
-        .v-trio-title { font-size:1.25rem; font-weight:700; color:#1A1A1A; margin-bottom:0.75rem; }
-        .v-trio-text { font-family:'DM Mono',monospace; font-size:0.8rem; color:#777; line-height:1.7; }
+        /* DIRECTORY NAV */
+        .d-directory { position:fixed; left:1.5rem; top:50%; transform:translateY(-50%); z-index:25; display:flex; flex-direction:column; gap:0.5rem; }
+        @media(max-width:1100px){ .d-directory { display:none; } }
+        .d-dir-link { font-size:0.6rem; letter-spacing:0.1em; color:#5A5748; cursor:pointer; background:none; border:none; text-align:left; transition:color 0.2s; padding:0; }
+        .d-dir-link:hover { color:#C9A84C; }
 
-        /* SERVICES — alternating image/text blocks */
-        .v-services { background:#F7F5F0; padding:5rem 0; }
-        .v-service-block { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:3.5rem; align-items:center; padding:3rem 2rem; }
-        @media(max-width:760px){ .v-service-block { grid-template-columns:1fr; gap:1.5rem; } .v-service-block.reverse .v-service-img { order:-1; } }
-        .v-service-img { aspect-ratio:4/3; background-size:cover; background-position:center; border-radius:3px; }
-        .v-service-label { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; margin-bottom:0.75rem; }
-        .v-service-title { font-size:clamp(1.6rem,3.5vw,2.2rem); font-weight:800; color:#1A1A1A; margin-bottom:1.25rem; line-height:1.15; }
-        .v-service-desc { font-family:'DM Mono',monospace; font-size:0.82rem; color:#777; line-height:1.8; margin-bottom:1.75rem; }
-        .v-service-link { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:#1A1A1A; cursor:pointer; display:inline-flex; align-items:center; gap:8px; border-bottom:1px solid #1A1A1A; padding-bottom:3px; transition:color 0.2s, border-color 0.2s; }
-        .v-service-link:hover { color:#C9A84C; border-color:#C9A84C; }
-        .v-service-link::after { content:'→'; transition:transform 0.2s; }
-        .v-service-link:hover::after { transform:translateX(4px); }
+        /* HERO */
+        .d-hero { min-height:92vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:3rem 2rem; position:relative; }
+        .d-hero-file { font-size:0.62rem; letter-spacing:0.25em; color:#8A8677; margin-bottom:2rem; animation:dfadeUp 0.7s ease both; }
+        .d-hero-name { font-family:'Syne',sans-serif; font-size:clamp(1.4rem,6.5vw,5rem); font-weight:800; letter-spacing:-0.02em; color:#E8E4D8; line-height:1; white-space:nowrap; animation:dfadeUp 0.8s 0.1s ease both; }
+        .d-hero-name span { color:#C9A84C; }
+        .d-walker-wrap { position:relative; height:26px; margin:1.25rem 0 0; overflow:visible; width:240px; }
+        .d-walker { position:absolute; top:0; left:0; animation:carDrive 9s linear infinite; }
+        .d-car-svg { animation:carBob 0.8s ease-in-out infinite; overflow:visible; }
+        .d-wheel-f { animation:wheelSpin 1.5s linear infinite; transform-origin:9px 18px; }
+        .d-wheel-r { animation:wheelSpin 1.5s linear infinite; transform-origin:32px 18px; }
+        .d-hero-line1 { font-size:clamp(0.95rem,2.4vw,1.35rem); color:#E8E4D8; margin-top:2.5rem; letter-spacing:0.05em; animation:dfadeUp 0.8s 0.2s ease both; }
+        .d-hero-line2 { font-size:0.72rem; color:#8A8677; margin-top:0.9rem; letter-spacing:0.15em; text-transform:uppercase; animation:dfadeUp 0.8s 0.3s ease both; }
+        .d-hero-line2 b { color:#C9A84C; font-weight:500; }
+        .d-hero-cta { display:flex; gap:1rem; margin-top:2.75rem; flex-wrap:wrap; justify-content:center; animation:dfadeUp 0.8s 0.4s ease both; }
+        .d-btn { font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.12em; text-transform:uppercase; padding:0.85rem 1.9rem; border-radius:1px; cursor:pointer; transition:all 0.2s; }
+        .d-btn.fill { background:#C9A84C; color:#0E0E0C; border:1px solid #C9A84C; }
+        .d-btn.fill:hover { background:#E8E4D8; border-color:#E8E4D8; }
+        .d-btn.ghost { background:transparent; color:#E8E4D8; border:1px solid #3A3830; }
+        .d-btn.ghost:hover { border-color:#C9A84C; color:#C9A84C; }
+        .d-scrollcue { position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); font-size:0.6rem; letter-spacing:0.2em; color:#5A5748; }
 
-        /* STATS BAND */
-        .v-stats { background:#1A1A1A; padding:4rem 2rem; }
-        .v-stats-inner { max-width:1100px; margin:0 auto; display:flex; justify-content:center; gap:5rem; flex-wrap:wrap; text-align:center; }
-        .v-stat-num { font-size:clamp(2.5rem,6vw,3.5rem); font-weight:800; color:#C9A84C; line-height:1; }
-        .v-stat-lbl { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#999; margin-top:0.75rem; }
+        /* SECTION SHELL */
+        .d-section { max-width:1050px; margin:0 auto; padding:6rem 2rem; border-top:1px solid #26261F; position:relative; }
+        .d-sec-num { font-size:0.62rem; letter-spacing:0.25em; color:#C9A84C; margin-bottom:1rem; }
+        .d-sec-title { font-family:'Syne',sans-serif; font-size:clamp(1.7rem,4.5vw,3rem); font-weight:800; color:#E8E4D8; letter-spacing:-0.01em; line-height:1.05; margin-bottom:1rem; }
+        .d-sec-sub { font-size:0.75rem; color:#8A8677; letter-spacing:0.05em; line-height:1.8; max-width:520px; }
+
+        /* SOURCING CHAIN — phases */
+        .d-phases { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:#26261F; border:1px solid #26261F; margin-top:3rem; }
+        @media(max-width:760px){ .d-phases { grid-template-columns:1fr 1fr; } }
+        @media(max-width:460px){ .d-phases { grid-template-columns:1fr; } }
+        .d-phase { background:#12120F; padding:2rem 1.5rem; transition:background 0.25s; }
+        .d-phase:hover { background:#191914; }
+        .d-phase-tag { font-size:0.6rem; letter-spacing:0.2em; color:#C9A84C; margin-bottom:1.1rem; }
+        .d-phase-name { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:700; color:#E8E4D8; margin-bottom:0.75rem; }
+        .d-phase-desc { font-size:0.68rem; color:#8A8677; line-height:1.75; }
+
+        /* GOODS MANIFEST — labeled parts grid */
+        .d-manifest-note { font-size:0.6rem; letter-spacing:0.15em; color:#5A5748; margin-top:0.75rem; }
+        .d-manifest { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:3rem; }
+        @media(max-width:860px){ .d-manifest { grid-template-columns:repeat(2,1fr); } }
+        .d-item { border:1px solid #26261F; background:#12120F; padding:1.5rem 1.25rem; position:relative; transition:border-color 0.25s, transform 0.25s; cursor:default; }
+        .d-item:hover { border-color:#C9A84C; transform:translateY(-3px); }
+        .d-item-num { position:absolute; top:0.85rem; right:1rem; font-size:0.6rem; color:#5A5748; }
+        .d-item:hover .d-item-num { color:#C9A84C; }
+        .d-item-icon { font-size:1.7rem; margin-bottom:1rem; }
+        .d-item-name { font-size:0.68rem; letter-spacing:0.12em; text-transform:uppercase; color:#E8E4D8; margin-bottom:0.4rem; }
+        .d-item-origin { font-size:0.6rem; color:#8A8677; letter-spacing:0.08em; }
+
+        /* SERVICES — dossier rows */
+        .d-servrows { margin-top:3rem; }
+        .d-servrow { display:grid; grid-template-columns:110px 1fr auto; gap:1.5rem; align-items:center; padding:2rem 0; border-top:1px solid #26261F; cursor:pointer; transition:background 0.2s; }
+        .d-servrow:hover { background:#12120F; }
+        @media(max-width:680px){ .d-servrow { grid-template-columns:70px 1fr; } .d-servrow > *:nth-child(3){ display:none; } }
+        .d-servrow-num { font-size:0.68rem; color:#C9A84C; letter-spacing:0.15em; }
+        .d-servrow-body h3 { font-family:'Syne',sans-serif; font-size:1.25rem; font-weight:700; color:#E8E4D8; margin-bottom:0.4rem; }
+        .d-servrow-body p { font-size:0.7rem; color:#8A8677; line-height:1.7; max-width:480px; }
+        .d-servrow-arrow { font-size:1.1rem; color:#5A5748; transition:color 0.2s, transform 0.2s; }
+        .d-servrow:hover .d-servrow-arrow { color:#C9A84C; transform:translateX(5px); }
 
         /* CONTACT */
-        .v-contact { padding:6rem 2rem; max-width:1100px; margin:0 auto; text-align:center; }
-        .v-contact-title { font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; color:#1A1A1A; margin-bottom:2.5rem; }
-        .v-wa-row { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
-        .v-wa-btn { display:flex; align-items:center; gap:0.6rem; background:#F7F5F0; border:1px solid #E5E1D8; border-radius:3px; padding:0.85rem 1.6rem; text-decoration:none; transition:all 0.2s; }
-        .v-wa-btn:hover { border-color:#C9A84C; transform:translateY(-2px); }
-        .v-wa-region { font-family:'DM Mono',monospace; font-size:0.62rem; color:#999; letter-spacing:0.08em; text-transform:uppercase; }
-        .v-wa-number { font-family:'DM Mono',monospace; font-size:0.8rem; color:#1A1A1A; }
+        .d-contact-title { font-family:'Syne',sans-serif; font-size:clamp(1.5rem,4vw,2.4rem); font-weight:800; color:#E8E4D8; margin-bottom:2.25rem; }
+        .d-wa-row { display:flex; gap:1rem; flex-wrap:wrap; }
+        .d-wa-btn { display:flex; align-items:center; gap:0.6rem; background:#12120F; border:1px solid #26261F; padding:0.8rem 1.5rem; text-decoration:none; transition:all 0.2s; }
+        .d-wa-btn:hover { border-color:#C9A84C; transform:translateY(-2px); }
+        .d-wa-region { font-size:0.58rem; color:#8A8677; letter-spacing:0.12em; text-transform:uppercase; }
+        .d-wa-number { font-size:0.75rem; color:#E8E4D8; }
 
-        .v-admin-box { max-width:280px; margin:2.5rem auto 0; }
-        .v-pw-input { width:100%; background:#fff; border:1px solid #D8D2C4; color:#1A1A1A; font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.65rem 1rem; border-radius:3px; outline:none; margin-bottom:0.5rem; }
-        .v-pw-input:focus { border-color:#C9A84C; }
-        .v-pw-error { font-family:'DM Mono',monospace; font-size:0.7rem; color:#C0392B; margin-top:0.4rem; }
+        .d-admin-box { max-width:280px; margin-top:2.25rem; }
+        .d-pw-input { width:100%; background:#0E0E0C; border:1px solid #3A3830; color:#E8E4D8; font-family:'DM Mono',monospace; font-size:0.8rem; padding:0.65rem 1rem; border-radius:1px; outline:none; margin-bottom:0.5rem; }
+        .d-pw-input:focus { border-color:#C9A84C; }
+        .d-pw-error { font-size:0.68rem; color:#EF4444; margin-top:0.4rem; }
 
-        /* FOOTER — multi column */
-        .v-footer { background:#1A1A1A; padding:4rem 2rem 2rem; }
-        .v-footer-grid { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:2fr 1fr 1fr; gap:3rem; }
-        @media(max-width:680px){ .v-footer-grid { grid-template-columns:1fr; gap:2rem; } }
-        .v-footer-col h5 { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; margin-bottom:1.25rem; }
-        .v-footer-about { font-family:'DM Mono',monospace; font-size:0.8rem; color:#999; line-height:1.8; max-width:340px; }
-        .v-footer-logo { font-size:1.2rem; font-weight:800; color:#fff; margin-bottom:1rem; }
-        .v-footer-logo span { color:#C9A84C; }
-        .v-footer-links { display:flex; flex-direction:column; gap:0.6rem; }
-        .v-footer-links button { font-family:'DM Mono',monospace; font-size:0.78rem; color:#bbb; background:none; border:none; cursor:pointer; text-align:left; padding:0; transition:color 0.2s; }
-        .v-footer-links button:hover { color:#C9A84C; }
-        .v-footer-bottom { max-width:1100px; margin:3rem auto 0; padding-top:2rem; border-top:1px solid #333; font-family:'DM Mono',monospace; font-size:0.68rem; color:#666; letter-spacing:0.08em; text-align:center; }
+        /* FOOTER */
+        .d-footer { border-top:1px solid #26261F; padding:3rem 2rem 2.5rem; text-align:center; }
+        .d-footer-logo { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:800; color:#E8E4D8; margin-bottom:0.9rem; }
+        .d-footer-logo span { color:#C9A84C; }
+        .d-footer-meta { font-size:0.6rem; letter-spacing:0.18em; color:#5A5748; line-height:2; text-transform:uppercase; }
       `}</style>
 
-      <div className="v-wrap">
+      <div className="d-wrap">
+
+        {/* CLOCK BAR — live city times */}
+        <div className="d-clockbar">
+          <div className="d-clock"><span className="d-clock-city">LONDON, UK</span><span className="d-clock-time">{cityTimes.london}</span></div>
+          <div className="d-clock"><span className="d-clock-city">DUBAI, UAE</span><span className="d-clock-time">{cityTimes.dubai}</span></div>
+          <div className="d-clock"><span className="d-clock-city">LAGOS, NG</span><span className="d-clock-time">{cityTimes.lagos}</span></div>
+        </div>
+
+        {/* DIRECTORY */}
+        <div className="d-directory">
+          <button className="d-dir-link" onClick={() => document.getElementById("d-hero").scrollIntoView({behavior:"smooth"})}>01 INTRO</button>
+          <button className="d-dir-link" onClick={() => document.getElementById("d-chain").scrollIntoView({behavior:"smooth"})}>02 SOURCING CHAIN</button>
+          <button className="d-dir-link" onClick={() => document.getElementById("d-manifest").scrollIntoView({behavior:"smooth"})}>03 GOODS MANIFEST</button>
+          <button className="d-dir-link" onClick={() => document.getElementById("d-services").scrollIntoView({behavior:"smooth"})}>04 ACCESS POINTS</button>
+          <button className="d-dir-link" onClick={() => document.getElementById("d-contact").scrollIntoView({behavior:"smooth"})}>05 CONTACT</button>
+        </div>
 
         {/* HERO */}
-        <div className="v-hero">
-          <div className="v-hero-bg"></div>
-          <nav className="v-nav">
-            <div className="v-nav-logo">SPARES<span>ANYWHERE</span></div>
-            <div className="v-nav-links">
-              <button onClick={() => setView("garage")}>Portal</button>
-              <button onClick={() => setView("stories")}>Stories</button>
-              <button onClick={() => setView("track")}>Track</button>
+        <div className="d-hero" id="d-hero">
+          <div className="d-hero-file">FILE 001 — CROSS-BORDER PARTS NETWORK</div>
+          <div className="d-hero-name">SPARES<span>ANYWHERE</span></div>
+          <div className="d-walker-wrap">
+            <div className="d-walker">
+              <svg className="d-car-svg" viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="2,16 4,9 11,9 15,4 29,4 33,9 40,9 42,16" />
+                <line x1="2" y1="16" x2="5" y2="16" />
+                <line x1="13" y1="16" x2="28" y2="16" />
+                <line x1="36" y1="16" x2="42" y2="16" />
+                <g className="d-wheel-f"><circle cx="9" cy="18" r="4" /><line x1="9" y1="14" x2="9" y2="22" /><line x1="5" y1="18" x2="13" y2="18" /></g>
+                <g className="d-wheel-r"><circle cx="32" cy="18" r="4" /><line x1="32" y1="14" x2="32" y2="22" /><line x1="28" y1="18" x2="36" y2="18" /></g>
+              </svg>
             </div>
-          </nav>
-          <div className="v-hero-content">
-            <div className="v-hero-name">SPARES<span>ANYWHERE</span></div>
-            <div className="v-walker-wrap">
-              <div className="v-walker">
-                <svg className="v-car-svg" viewBox="0 0 44 24" width="44" height="24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="2,16 4,9 11,9 15,4 29,4 33,9 40,9 42,16" />
-                  <line x1="2" y1="16" x2="5" y2="16" />
-                  <line x1="13" y1="16" x2="28" y2="16" />
-                  <line x1="36" y1="16" x2="42" y2="16" />
-                  <g className="v-wheel-f"><circle cx="9" cy="18" r="4" /><line x1="9" y1="14" x2="9" y2="22" /><line x1="5" y1="18" x2="13" y2="18" /></g>
-                  <g className="v-wheel-r"><circle cx="32" cy="18" r="4" /><line x1="32" y1="14" x2="32" y2="22" /><line x1="28" y1="18" x2="36" y2="18" /></g>
-                </svg>
+          </div>
+          <div className="d-hero-line1">The world's rarest parts.</div>
+          <div className="d-hero-line2">Tracked. Sourced. Delivered. — <b>London · Dubai · Lagos</b></div>
+          <div className="d-hero-cta">
+            <button className="d-btn fill" onClick={() => setView("garage")}>Submit a Request</button>
+            <button className="d-btn ghost" onClick={() => setView("track")}>Track an Order</button>
+          </div>
+          <div className="d-scrollcue">(scroll down)</div>
+        </div>
+
+        {/* SOURCING CHAIN */}
+        <div className="d-section" id="d-chain">
+          <div className="d-sec-num">02 / SOURCING CHAIN</div>
+          <div className="d-sec-title d-reveal">From request<br/>to delivery.</div>
+          <div className="d-sec-sub d-reveal">Every order moves through a controlled four-phase chain. No dead ends. No guesswork. Each phase is logged and trackable.</div>
+          <div className="d-phases d-reveal">
+            <div className="d-phase">
+              <div className="d-phase-tag">PHASE 01</div>
+              <div className="d-phase-name">REQUEST</div>
+              <div className="d-phase-desc">Part, vehicle, and reference photos submitted through the Garage Portal. VIN plates accepted.</div>
+            </div>
+            <div className="d-phase">
+              <div className="d-phase-tag">PHASE 02</div>
+              <div className="d-phase-name">THE HUNT</div>
+              <div className="d-phase-desc">Our network across three markets is checked for the fastest viable route to the part.</div>
+            </div>
+            <div className="d-phase">
+              <div className="d-phase-tag">PHASE 03</div>
+              <div className="d-phase-name">QUOTE</div>
+              <div className="d-phase-desc">OEM or aftermarket options priced within 48 hours. Your call on which route to take.</div>
+            </div>
+            <div className="d-phase">
+              <div className="d-phase-tag">PHASE 04</div>
+              <div className="d-phase-name">DELIVERY</div>
+              <div className="d-phase-desc">Shipped, cleared, and delivered. Status trackable at every step with your Order ID.</div>
+            </div>
+          </div>
+        </div>
+
+        {/* GOODS MANIFEST */}
+        <div className="d-section" id="d-manifest">
+          <div className="d-sec-num">03 / GOODS MANIFEST</div>
+          <div className="d-sec-title d-reveal">Recently sourced.</div>
+          <div className="d-manifest-note d-reveal">(inspect the labels)</div>
+          <div className="d-manifest d-reveal">
+            <div className="d-item">
+              <span className="d-item-num">(01)</span>
+              <div className="d-item-icon">🛞</div>
+              <div className="d-item-name">White-wall Tyres ×4</div>
+              <div className="d-item-origin">ROLLS-ROYCE SILVER SERAPH — EX. UK</div>
+            </div>
+            <div className="d-item">
+              <span className="d-item-num">(02)</span>
+              <div className="d-item-icon">⚙️</div>
+              <div className="d-item-name">5.7L V8 Engine</div>
+              <div className="d-item-origin">TOYOTA TUNDRA — EX. UAE</div>
+            </div>
+            <div className="d-item">
+              <span className="d-item-num">(03)</span>
+              <div className="d-item-icon">🔩</div>
+              <div className="d-item-name">Brake Callipers (Pair)</div>
+              <div className="d-item-origin">MERCEDES 560 SEL — EX. DE</div>
+            </div>
+            <div className="d-item">
+              <span className="d-item-num">(04)</span>
+              <div className="d-item-icon">🪜</div>
+              <div className="d-item-name">Side Steps</div>
+              <div className="d-item-origin">ROLLS-ROYCE CULLINAN — EX. CN</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ACCESS POINTS (SERVICES) */}
+        <div className="d-section" id="d-services">
+          <div className="d-sec-num">04 / ACCESS POINTS</div>
+          <div className="d-sec-title d-reveal">Three ways in.</div>
+          <div className="d-servrows d-reveal">
+            <div className="d-servrow" onClick={() => setView("garage")}>
+              <div className="d-servrow-num">A—01</div>
+              <div className="d-servrow-body">
+                <h3>Garage Portal</h3>
+                <p>Submit part requests with VIN plates or reference photos. Quotes within 48 hours.</p>
               </div>
+              <div className="d-servrow-arrow">→</div>
             </div>
-            <div className="v-hero-tag">No part too rare<br/><span className="v-hero-cities">London · Dubai · Lagos</span></div>
-            <div className="v-hero-cta">
-              <button className="v-btn fill" onClick={() => setView("garage")}>Submit a Request</button>
-              <button className="v-btn ghost" onClick={() => setView("track")}>Track an Order</button>
+            <div className="d-servrow" onClick={() => setView("stories")}>
+              <div className="d-servrow-num">A—02</div>
+              <div className="d-servrow-body">
+                <h3>Sourcing Stories</h3>
+                <p>Case files from the hunt — how the rarest parts were tracked down across three continents.</p>
+              </div>
+              <div className="d-servrow-arrow">→</div>
             </div>
-          </div>
-        </div>
-
-        {/* WHAT WE DO */}
-        <div className="v-section">
-          <div className="v-section-label v-reveal">What we do</div>
-          <div className="v-section-heading v-reveal">Sourcing, simplified.</div>
-          <div className="v-trio v-reveal">
-            <div className="v-trio-item">
-              <div className="v-trio-icon">🌍</div>
-              <div className="v-trio-title">Global Reach</div>
-              <div className="v-trio-text">Three markets — London, Dubai, and Lagos — connected into one supply chain that finds the rare part wherever it lives.</div>
+            <div className="d-servrow" onClick={() => setView("track")}>
+              <div className="d-servrow-num">A—03</div>
+              <div className="d-servrow-body">
+                <h3>Order Tracking</h3>
+                <p>Live status by Order ID — pending, quoted, sourcing, or fulfilled. No login needed.</p>
+              </div>
+              <div className="d-servrow-arrow">→</div>
             </div>
-            <div className="v-trio-item">
-              <div className="v-trio-icon">⚙️</div>
-              <div className="v-trio-title">OEM &amp; Aftermarket</div>
-              <div className="v-trio-text">Genuine manufacturer parts or quality aftermarket alternatives — your choice, with honest pricing on both.</div>
-            </div>
-            <div className="v-trio-item">
-              <div className="v-trio-icon">⚡</div>
-              <div className="v-trio-title">48h Turnaround</div>
-              <div className="v-trio-text">Most requests are quoted within 48 hours. We move fast because your garage can't wait weeks for a part.</div>
-            </div>
-          </div>
-        </div>
-
-        {/* SERVICES — alternating blocks */}
-        <div className="v-services">
-          <div className="v-section-label v-reveal" style={{marginBottom:"2.5rem"}}>Services</div>
-
-          <div className="v-service-block v-reveal">
-            <div>
-              <div className="v-service-label">Service / 001</div>
-              <div className="v-service-title">Garage Portal</div>
-              <div className="v-service-desc">Submit a part request, upload VIN plates or reference photos, and get a quote within 48 hours. Track every order from request to delivery — no chasing, no guessing.</div>
-              <span className="v-service-link" onClick={() => setView("garage")}>Open Portal</span>
-            </div>
-            <div className="v-service-img" style={{backgroundImage:"url('https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80')"}}></div>
-          </div>
-
-          <div className="v-service-block reverse v-reveal">
-            <div className="v-service-img" style={{backgroundImage:"url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80')"}}></div>
-            <div>
-              <div className="v-service-label">Service / 002</div>
-              <div className="v-service-title">Sourcing Stories</div>
-              <div className="v-service-desc">Behind every order is a hunt — dead ends, long-shot contacts, and the moment the right part finally surfaces. Read how we tracked down the rarest jobs across three continents.</div>
-              <span className="v-service-link" onClick={() => setView("stories")}>Read Stories</span>
-            </div>
-          </div>
-
-          <div className="v-service-block v-reveal">
-            <div>
-              <div className="v-service-label">Service / 003</div>
-              <div className="v-service-title">Order Tracking</div>
-              <div className="v-service-desc">Enter your Order ID and see exactly where your part is — pending, quoted, sourcing, or fulfilled. Live status, no login required.</div>
-              <span className="v-service-link" onClick={() => setView("track")}>Track Now</span>
-            </div>
-            <div className="v-service-img" style={{backgroundImage:"url('https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=800&q=80')"}}></div>
-          </div>
-        </div>
-
-        {/* STATS */}
-        <div className="v-stats">
-          <div className="v-stats-inner">
-            <div><div className="v-stat-num">3</div><div className="v-stat-lbl">Countries</div></div>
-            <div><div className="v-stat-num">48h</div><div className="v-stat-lbl">Avg. Turnaround</div></div>
-            <div><div className="v-stat-num">OEM</div><div className="v-stat-lbl">&amp; Aftermarket</div></div>
           </div>
         </div>
 
         {/* CONTACT */}
-        <div className="v-contact">
-          <div className="v-section-label v-reveal">Contact</div>
-          <div className="v-contact-title v-reveal">Talk to us on WhatsApp.</div>
-          <div className="v-wa-row v-reveal">
-            <a className="v-wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
+        <div className="d-section" id="d-contact">
+          <div className="d-sec-num">05 / CONTACT</div>
+          <div className="d-contact-title d-reveal">Open a line.</div>
+          <div className="d-wa-row d-reveal">
+            <a className="d-wa-btn" href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer">
               <span>💬</span>
-              <div><div className="v-wa-region">London</div><div className="v-wa-number">+44 7494 806066</div></div>
+              <div><div className="d-wa-region">London</div><div className="d-wa-number">+44 7494 806066</div></div>
             </a>
-            <a className="v-wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
+            <a className="d-wa-btn" href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer">
               <span>💬</span>
-              <div><div className="v-wa-region">Lagos</div><div className="v-wa-number">+234 9168 340653</div></div>
+              <div><div className="d-wa-region">Lagos</div><div className="d-wa-number">+234 9168 340653</div></div>
             </a>
-            <a className="v-wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
+            <a className="d-wa-btn" href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer">
               <span>💬</span>
-              <div><div className="v-wa-region">Dubai</div><div className="v-wa-number">+971 557 997247</div></div>
+              <div><div className="d-wa-region">Dubai</div><div className="d-wa-number">+971 557 997247</div></div>
             </a>
           </div>
           {isAdminDevice && (
-            <div className="v-admin-box">
-              <input className="v-pw-input" type="password" placeholder="Admin password…" value={adminPw}
+            <div className="d-admin-box">
+              <input className="d-pw-input" type="password" placeholder="Admin password…" value={adminPw}
                 onChange={e => { setAdminPw(e.target.value); setPwError(false); }}
                 onKeyDown={e => e.key === "Enter" && enterAdmin()} />
-              <button className="v-btn fill" style={{width:"100%"}} onClick={enterAdmin}>Enter Admin →</button>
-              {pwError && <div className="v-pw-error">Incorrect password</div>}
+              <button className="d-btn fill" style={{width:"100%"}} onClick={enterAdmin}>Enter Admin →</button>
+              {pwError && <div className="d-pw-error">Incorrect password</div>}
             </div>
           )}
         </div>
 
         {/* FOOTER */}
-        <div className="v-footer">
-          <div className="v-footer-grid">
-            <div className="v-footer-col">
-              <div className="v-footer-logo">SPARES<span>ANYWHERE</span></div>
-              <p className="v-footer-about">Cross-border automotive parts sourcing across London, Dubai, and Lagos. OEM and aftermarket — no part too rare, no market too far.</p>
-            </div>
-            <div className="v-footer-col">
-              <h5>Explore</h5>
-              <div className="v-footer-links">
-                <button onClick={() => setView("garage")}>Garage Portal</button>
-                <button onClick={() => setView("stories")}>Sourcing Stories</button>
-                <button onClick={() => setView("track")}>Track Order</button>
-              </div>
-            </div>
-            <div className="v-footer-col">
-              <h5>Contact</h5>
-              <div className="v-footer-links">
-                <a href="https://wa.me/447494806066" target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}><button>London · WhatsApp</button></a>
-                <a href="https://wa.me/2349168340653" target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}><button>Lagos · WhatsApp</button></a>
-                <a href="https://wa.me/971557997247" target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}><button>Dubai · WhatsApp</button></a>
-              </div>
-            </div>
+        <div className="d-footer">
+          <div className="d-footer-logo">SPARES<span>ANYWHERE</span></div>
+          <div className="d-footer-meta">
+            © {new Date().getFullYear()} SPARESANYWHERE — LONDON · DUBAI · LAGOS<br/>
+            NO PART TOO RARE. NO MARKET TOO FAR.
           </div>
-          <div className="v-footer-bottom">SPARESANYWHERE © {new Date().getFullYear()} — LONDON · DUBAI · LAGOS</div>
         </div>
 
       </div>
